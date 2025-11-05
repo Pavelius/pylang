@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="pyx" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Debug">
+				<Option output="../../bin/Debug/pyx" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="../" />
+				<Option object_output="../../obj/Debug/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-g" />
+					<Add directory="../support" />
+				</Compiler>
+			</Target>
+			<Target title="Release">
+				<Option output="../bin/Release/pyx" prefix_auto="1" extension_auto="1" />
+				<Option object_output="../obj/Release/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-O2" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+		</Compiler>
+		<Unit filename="../code/test/main.py" />
+		<Unit filename="../platform/nix_io_file.cpp" />
+		<Unit filename="../support/array.cpp" />
+		<Unit filename="../support/array.h" />
+		<Unit filename="../support/bsdata.h" />
+		<Unit filename="../support/flagable.h" />
+		<Unit filename="../support/io_stream.cpp" />
+		<Unit filename="../support/io_stream.h" />
+		<Unit filename="../support/math.cpp" />
+		<Unit filename="../support/math.h" />
+		<Unit filename="../support/slice.h" />
+		<Unit filename="../support/stringa.cpp" />
+		<Unit filename="../support/stringa.h" />
+		<Unit filename="../support/stringbuilder.cpp" />
+		<Unit filename="../support/stringbuilder.h" />
+		<Unit filename="calculator.cpp" />
+		<Unit filename="calculator.h" />
+		<Unit filename="main.cpp" />
+		<Unit filename="scope.cpp" />
+		<Unit filename="scope.h" />
+		<Unit filename="scripter.cpp" />
+		<Unit filename="section.cpp" />
+		<Unit filename="section.h" />
+		<Extensions />
+	</Project>
+</CodeBlocks_project_file>
