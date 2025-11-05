@@ -31,8 +31,8 @@ const char*			library_url;
 
 static int			size_of_pointer = 4;
 
-static void parse_expression();
-static void unary();
+static int parse_expression();
+static int unary();
 static int expression();
 
 int symboli::getindex() const {
@@ -612,6 +612,10 @@ static void parse_url_identifier() {
 	skipws();
 }
 
+static void binary(int& a, operationn op, int b) {
+	a = ast_add(op, a, b);
+}
+
 static void unary_operation(operationn v) {
 	if(operation <= operations) {
 		error("Unary operations stack corupt");
@@ -649,7 +653,74 @@ static int parameter_list() {
 	return result;
 }
 
-static void postfix() {
+static int unary(operationn op, int b) {
+	return ast_add(op, b);
+}
+
+static int unary() {
+	if(p[0] == '-') {
+		if(p[1] == '-') {
+			skipws(2);
+			return unary();
+		} else {
+			skipws(1);
+			return unary(Neg, unary());
+		}
+	} else if(p[0] == '+') {
+		if(p[1] == '+') {
+			skipws(2);
+			return unary();
+		} else {
+			skipws(1);
+			return unary();
+		}
+	} else if(p[0]=='!') {
+		skipws(1);
+		return unary(Not, unary());
+	} else if(p[0]=='*') {
+		skipws(1);
+		return unary(Dereference, unary());
+	} else if(p[0]=='&') {
+		skipws(1);
+		return unary(AdressOf, unary());
+	} else if(p[0]=='(') {
+		skipws(1);
+		parse_type();
+		if(last_type != -1 && *p == ')') {
+			auto type = last_type;
+			skipws(1);
+			return ast_add(Cast, type, unary());
+		} else {
+			auto a = expression();
+			skip(")");
+			return a;
+		}
+	} else if(p[0]=='\"') {
+		literal();
+		return ast_add(Text, strings.add(last_string));
+	} else if(p[0]>='0' && p[0]<='9') {
+		parse_number();
+		return ast_add(Number, last_number);
+	} else if(isidentifier()) {
+		parse_identifier();
+		auto ids = strings.add(last_string);
+		auto idf = find_define(ids);
+		if(idf != -1)
+			return define_ast(idf);
+		auto sid = find_variable(ids);
+		if(sid == -1) {
+			error("Symbol `%1` not exist", string_name(ids));
+			sid = create_symbol(ids, i32, 0, -1, module_sid);
+		}
+		return ast_add(Identifier, sid);
+	} else {
+		error("Expected unary expression.");
+		return -1;
+	}
+}
+
+static int postfix() {
+	auto a = unary();
 	while(*p) {
 		if(match("(")) {
 			auto params = -1;
@@ -657,7 +728,7 @@ static void postfix() {
 				params = parameter_list();
 			skip(")");
 		} else if(match("[")) {
-			expression();
+			auto b = expression();
 			skip("]");
 		} else if(match("++")) {
 
@@ -674,89 +745,11 @@ static void postfix() {
 		} else
 			break;
 	}
+	return a;
 }
 
-static void unary() {
-	switch(p[0]) {
-	case '-':
-		if(p[1] == '-') {
-			skipws(2);
-			unary();
-		} else {
-			skipws(1);
-			unary();
-			unary_operation(Neg);
-		}
-		break;
-	case '+':
-		if(p[1] == '+') {
-			skipws(2);
-			unary();
-		} else {
-			skipws(1);
-			unary();
-		}
-		break;
-	case '!':
-		skipws(1);
-		unary();
-		unary_operation(Not);
-		break;
-	case '*':
-		skipws(1);
-		unary();
-		unary_operation(Dereference);
-		break;
-	case '&':
-		skipws(1);
-		unary();
-		unary_operation(AdressOf);
-		break;
-	case '(':
-		skipws(1);
-		parse_type();
-		if(last_type != -1 && *p == ')') {
-			auto type = last_type;
-			skipws(1);
-			unary();
-			add_op(ast_add(Cast, type));
-		} else {
-			parse_expression();
-			skip(")");
-		}
-		break;
-	case '\"':
-		literal();
-		add_op(ast_add(Text, strings.add(last_string)));
-		break;
-	case '0':case '1':case '2':case '3':case '4':
-	case '5':case '6':case '7':case '8':case '9':
-		parse_number();
-		add_op(ast_add(Number, last_number));
-		break;
-	default:
-		if(isidentifier()) {
-			parse_identifier();
-			auto ids = strings.add(last_string);
-			auto idf = find_define(ids);
-			if(idf != -1) {
-				add_op(define_ast(idf));
-				break;
-			}
-			auto sid = find_variable(ids);
-			if(sid == -1) {
-				error("Symbol `%1` not exist", string_name(ids));
-				sid = create_symbol(ids, i32, 0, -1, module_sid);
-			}
-			add_op(ast_add(Identifier, sid));
-		}
-		break;
-	}
-	postfix();
-}
-
-static void multiplication() {
-	unary();
+static int multiplication() {
+	auto a = postfix();
 	while((p[0] == '*' || p[0] == '/' || p[0] == '%') && p[1] != '=') {
 		char s = p[0]; skipws(1);
 		operationn op;
@@ -765,13 +758,13 @@ static void multiplication() {
 		case '%': op = DivRest; break;
 		default: op = Mul; break;
 		}
-		unary();
-		binary_operation(op);
+		binary(a, op, postfix());
 	}
+	return a;
 }
 
-static void addiction() {
-	multiplication();
+static int addiction() {
+	auto a = multiplication();
 	while((p[0] == '+' || p[0] == '-') && p[1] != '=') {
 		char s = p[0]; skipws(1);
 		operationn op;
@@ -780,13 +773,13 @@ static void addiction() {
 		case '-': op = Minus; break;
 		default: op = Mul; break;
 		}
-		multiplication();
-		binary_operation(op);
+		binary(a, op, multiplication());
 	}
+	return a;
 }
 
-static void binary_cond() {
-	addiction();
+static int binary_cond() {
+	auto a = addiction();
 	while((p[0] == '>' && p[1] != '>')
 		|| (p[0] == '<' && p[1] != '<')
 		|| (p[0] == '=' && p[1] == '=')
@@ -811,40 +804,40 @@ static void binary_cond() {
 		case '!': op = NotEqual; break;
 		default: op = Equal; break;
 		}
-		addiction();
-		binary_operation(op);
+		binary(a, op, addiction());
 	}
+	return a;
 }
 
-static void binary_and() {
-	binary_cond();
+static int binary_and() {
+	auto a = binary_cond();
 	while(p[0] == '&' && p[1] != '&') {
 		skipws(1);
-		binary_cond();
-		binary_operation(BinaryAnd);
+		binary(a, BinaryAnd, binary_cond());
 	}
+	return a;
 }
 
-static void binary_xor() {
-	binary_and();
+static int binary_xor() {
+	auto a = binary_and();
 	while(p[0] == '^') {
 		skipws(1);
-		binary_and();
-		binary_operation(BinaryXor);
+		binary(a, BinaryXor, binary_and());
 	}
+	return a;
 }
 
-static void binary_or() {
-	binary_xor();
+static int binary_or() {
+	auto a = binary_xor();
 	while(p[0] == '|' && p[1] != '|') {
 		skipws(1);
-		binary_xor();
-		binary_operation(BinaryOr);
+		binary(a, BinaryOr, binary_xor());
 	}
+	return a;
 }
 
-static void binary_shift() {
-	binary_or();
+static int binary_shift() {
+	auto a = binary_or();
 	while((p[0] == '>' && p[1] == '>') || (p[0] == '<' && p[1] == '<')) {
 		operationn op;
 		switch(p[0]) {
@@ -852,43 +845,39 @@ static void binary_shift() {
 		default: op = ShiftLeft; break;
 		}
 		skipws(2);
-		binary_or();
-		binary_operation(op);
+		binary(a, op, binary_or());
 	}
+	return a;
 }
 
-static void logical_and() {
-	binary_shift();
+static int logical_and() {
+	auto a = binary_shift();
 	while(p[0] == '&' && p[1] == '&') {
 		skipws(2);
-		binary_shift();
-		binary_operation(And);
+		binary(a, And, binary_shift());
 	}
+	return a;
 }
 
-static void logical_or() {
-	logical_and();
+static int logical_or() {
+	auto a = logical_and();
 	while(p[0] == '|' && p[1] == '|') {
 		skipws(2);
-		logical_and();
-		binary_operation(Or);
+		binary(a, Or, logical_and());
 	}
-}
-
-static void parse_expression() {
-	logical_or();
-	while(match("if")) {
-		parse_expression();
-		parse_expression();
-	}
+	return a;
 }
 
 static int expression() {
-	parse_expression();
-	return pop_op();
+	auto result = logical_or();
+	while(match("if")) {
+		auto a = logical_or();
+		auto b = expression();
+	}
+	return result;
 }
 
-static void parse_initialization_list() {
+static int parse_initialization_list() {
 	if(match("{")) {
 		auto result = -1;
 		do {
@@ -901,7 +890,7 @@ static void parse_initialization_list() {
 		add_op(ast_add(Initialization, result));
 		skip("}");
 	} else
-		parse_expression();
+		return expression();
 }
 
 static int initialization_list() {
@@ -913,13 +902,13 @@ static int getmoduleposition() {
 	return p - p_start;
 }
 
-static void parse_assigment() {
-	unary();
+static int parse_assigment() {
+	auto a = unary();
 	while(p[0] == '=') {
 		skipws(1);
-		parse_expression();
-		binary_operation(Assign);
+		binary(a, Assign, expression());
 	}
+	return a;
 }
 
 static void parse_array_declaration(int sid) {
@@ -936,7 +925,7 @@ static void symbol_instance(int sid, sectionn secid) {
 	e.instance.offset = s.ptr();
 }
 
-static void parse_local_declaration() {
+static int parse_local_declaration() {
 	if(parse_member_declaration()) {
 		auto type = last_type;
 		auto flags = last_flags;
@@ -948,11 +937,9 @@ static void parse_local_declaration() {
 		if(match("="))
 			symbol_ast(sid, initialization_list());
 		symbol_instance(sid, LocalSection);
-		skip(";");
-	} else {
-		parse_assigment();
-		skip(";");
-	}
+		return ast_add(Assign, sid, symbol_ast(sid));
+	} else
+		return parse_assigment();
 }
 
 static bool islinefeed() {
@@ -979,7 +966,7 @@ static void parse_statement() {
 				break;
 		}
 		add_op(previous);
-	} else if(match(";")) {
+	} else if(match("pass")) {
 		// Empthy statement
 	} else if(match("if")) {
 		skip("(");
@@ -1157,7 +1144,7 @@ void calculator_parse(const char* code) {
 	auto push_p_start = p_start;
 	p = code;
 	p_start = code;
-	parse_expression();
+	expression();
 	p_start = push_p_start;
 	p = push_p;
 }

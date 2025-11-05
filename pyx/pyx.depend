@@ -215,3 +215,75 @@
 
 1755759613 /home/user-331/projects/pyx/support/flagable.h
 
+1762341239 source:/home/user-331/projects/pylang/platform/nix_io_file.cpp
+	<cstdio>
+	<unistd.h>
+	<dirent.h>
+	"io_stream.h"
+	"stringbuilder.h"
+
+1762341234 /home/user-331/projects/pylang/support/io_stream.h
+
+1756361510 /home/user-331/projects/pylang/support/stringbuilder.h
+	"slice.h"
+	<stdarg.h>
+
+1762334271 /home/user-331/projects/pylang/support/slice.h
+
+1762334318 source:/home/user-331/projects/pylang/support/array.cpp
+	"array.h"
+	"math.h"
+	"stringbuilder.h"
+
+1755671959 /home/user-331/projects/pylang/support/array.h
+	"slice.h"
+
+1755670326 /home/user-331/projects/pylang/support/math.h
+
+1755670326 source:/home/user-331/projects/pylang/support/io_stream.cpp
+	"io_stream.h"
+	"stringbuilder.h"
+	"slice.h"
+
+1755670326 source:/home/user-331/projects/pylang/support/math.cpp
+	"math.h"
+
+1762334141 source:/home/user-331/projects/pylang/support/stringa.cpp
+	"stringa.h"
+	"stringbuilder.h"
+
+1762334152 /home/user-331/projects/pylang/support/stringa.h
+	"array.h"
+
+1762334409 source:/home/user-331/projects/pylang/support/stringbuilder.cpp
+	"stringbuilder.h"
+	"slice.h"
+
+1762341760 source:/home/user-331/projects/pylang/pyx/main.cpp
+	"bsdata.h"
+	"calculator.h"
+	"io_stream.h"
+	"section.h"
+	"stringbuilder.h"
+
+1755674105 /home/user-331/projects/pylang/support/bsdata.h
+	"array.h"
+
+1762333685 /home/user-331/projects/pylang/pyx/calculator.h
+
+1762340521 /home/user-331/projects/pylang/pyx/section.h
+
+1762334064 source:/home/user-331/projects/pylang/pyx/scope.cpp
+	"scope.h"
+
+1762334071 /home/user-331/projects/pylang/pyx/scope.h
+
+1762336278 source:/home/user-331/projects/pylang/pyx/scripter.cpp
+	"bsdata.h"
+	"calculator.h"
+
+1762340627 source:/home/user-331/projects/pylang/pyx/section.cpp
+	"bsdata.h"
+	"slice.h"
+	"section.h"
+
