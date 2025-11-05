@@ -13,3 +13,6 @@ void LastGame(int y)
  elif a>b
   a--
  return a / 2
+
+void copy(char* bits, uint offset)
+ bits[offset] = 0

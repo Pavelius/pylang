@@ -281,6 +281,21 @@ static void skipws(int count) {
 	skipws();
 }
 
+static bool same_indent() {
+	auto pb = p;
+	while(*p == ' ')
+		p++;
+	auto idents = p - pb;
+	if(idents > scope_ident) {
+		error("Expected ident %1i spaces", scope_ident);
+		return false;
+	} else if(idents < scope_ident) {
+		p = pb;
+		return false;
+	}
+	return true;
+}
+
 static bool match(const char* symbol) {
 	auto i = 0;
 	while(symbol[i]) {
@@ -291,6 +306,14 @@ static bool match(const char* symbol) {
 	p += i;
 	skipws();
 	return true;
+}
+
+static bool match_ident(const char* symbol) {
+	auto pb = p;
+	if(same_indent() && match(symbol))
+		return true;
+	p = pb;
+	return false;
 }
 
 static bool word(const char* symbol) {
@@ -323,21 +346,6 @@ static void skip_line_feed() {
 		error("Expected line feed");
 		p = skipline(p);
 	}
-}
-
-static bool same_indent() {
-	auto pb = p;
-	while(*p == ' ')
-		p++;
-	auto idents = p - pb;
-	if(idents > scope_ident) {
-		error("Expected ident %1i spaces", scope_ident);
-		return false;
-	} else if(idents < scope_ident) {
-		p = pb;
-		return false;
-	}
-	return true;
 }
 
 static void end_statement() {
@@ -539,9 +547,9 @@ static const char* find_module_url(const char* folder, const char* id, const cha
 }
 
 static const char* get_type_url(const char* id) {
-	auto p = find_module_url(project_url, id, "py");
+	auto p = find_module_url(project_url, id, "pcn");
 	if(!p)
-		p = find_module_url(library_url, id, "py");
+		p = find_module_url(library_url, id, "pcn");
 	return p;
 }
 
@@ -894,7 +902,7 @@ static int getmoduleposition() {
 }
 
 static int parse_assigment() {
-	auto a = postfix();
+	auto a = expression();
 	while(p[0] == '=') {
 		skipws(1);
 		binary(a, Assign, expression());
@@ -954,12 +962,12 @@ static int statement() {
 		auto e = expression();
 		auto s = statements();
 		auto r = ast_add(If, e, s);
-		while(match("elif")) {
+		while(match_ident("elif")) {
 			auto e = expression();
 			auto s = statements();
 			add_list(Case, r, ast_add(If, e, s));
 		}
-		if(match("else")) {
+		if(match_ident("else")) {
 			auto s = statements();
 			add_list(Default, r, ast_add(If, s));
 		}

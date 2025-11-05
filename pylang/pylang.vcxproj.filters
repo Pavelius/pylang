@@ -95,7 +95,7 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\code\test\main.py">
+    <None Include="..\code\test\main.pcn">
       <Filter>code</Filter>
     </None>
   </ItemGroup>
