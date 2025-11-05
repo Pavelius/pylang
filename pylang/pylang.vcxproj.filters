@@ -1,0 +1,102 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="lang">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="support">
+      <UniqueIdentifier>{f9dad784-bf18-49dd-bc27-8fffcf5a06e8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="platform">
+      <UniqueIdentifier>{12a6b307-d7d4-4fb4-8758-302850aa3d61}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="code">
+      <UniqueIdentifier>{5feb8f0a-408f-4bda-bc42-c6e949f12b3f}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\pyx\calculator.cpp">
+      <Filter>lang</Filter>
+    </ClCompile>
+    <ClCompile Include="..\pyx\main.cpp">
+      <Filter>lang</Filter>
+    </ClCompile>
+    <ClCompile Include="..\pyx\scope.cpp">
+      <Filter>lang</Filter>
+    </ClCompile>
+    <ClCompile Include="..\pyx\scripter.cpp">
+      <Filter>lang</Filter>
+    </ClCompile>
+    <ClCompile Include="..\pyx\section.cpp">
+      <Filter>lang</Filter>
+    </ClCompile>
+    <ClCompile Include="..\support\array.cpp">
+      <Filter>support</Filter>
+    </ClCompile>
+    <ClCompile Include="..\support\io_stream.cpp">
+      <Filter>support</Filter>
+    </ClCompile>
+    <ClCompile Include="..\support\math.cpp">
+      <Filter>support</Filter>
+    </ClCompile>
+    <ClCompile Include="..\support\stringa.cpp">
+      <Filter>support</Filter>
+    </ClCompile>
+    <ClCompile Include="..\support\stringbuilder.cpp">
+      <Filter>support</Filter>
+    </ClCompile>
+    <ClCompile Include="..\platform\win_io_file.cpp">
+      <Filter>platform</Filter>
+    </ClCompile>
+    <ClCompile Include="..\platform\win_console.cpp">
+      <Filter>platform</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\pyx\calculator.h">
+      <Filter>lang</Filter>
+    </ClInclude>
+    <ClInclude Include="..\pyx\scope.h">
+      <Filter>lang</Filter>
+    </ClInclude>
+    <ClInclude Include="..\pyx\section.h">
+      <Filter>lang</Filter>
+    </ClInclude>
+    <ClInclude Include="..\support\array.h">
+      <Filter>support</Filter>
+    </ClInclude>
+    <ClInclude Include="..\support\bsdata.h">
+      <Filter>support</Filter>
+    </ClInclude>
+    <ClInclude Include="..\support\flagable.h">
+      <Filter>support</Filter>
+    </ClInclude>
+    <ClInclude Include="..\support\io_stream.h">
+      <Filter>support</Filter>
+    </ClInclude>
+    <ClInclude Include="..\support\langparse.h">
+      <Filter>support</Filter>
+    </ClInclude>
+    <ClInclude Include="..\support\math.h">
+      <Filter>support</Filter>
+    </ClInclude>
+    <ClInclude Include="..\support\slice.h">
+      <Filter>support</Filter>
+    </ClInclude>
+    <ClInclude Include="..\support\stringa.h">
+      <Filter>support</Filter>
+    </ClInclude>
+    <ClInclude Include="..\support\stringbuilder.h">
+      <Filter>support</Filter>
+    </ClInclude>
+    <ClInclude Include="..\platform\win.h">
+      <Filter>platform</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\code\test\main.py">
+      <Filter>code</Filter>
+    </None>
+  </ItemGroup>
+</Project>

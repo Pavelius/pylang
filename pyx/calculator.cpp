@@ -21,8 +21,6 @@ static const char*	p;
 static const char*	p_start;
 static const char*	p_url;
 static stringa		strings;
-static int			operations[128];
-static int*			operation;
 static int			errors_count;
 
 static int			module_sid;
@@ -34,6 +32,12 @@ static int			size_of_pointer = 4;
 static int parse_expression();
 static int unary();
 static int expression();
+
+struct pushparam {
+	int params, scope;
+	pushparam(int sid) : params(function_params), scope(scope_maximum) { scope_maximum = 0; function_params = sid; }
+	~pushparam() { function_params = params; scope_maximum = scope; }
+};
 
 int symboli::getindex() const {
 	return this - bsdata<symboli>::begin();
@@ -106,7 +110,7 @@ static void error(const char* format, ...) {
 	if(!calculator_error_proc)
 		return;
 	XVA_FORMAT(format)
-	calculator_error_proc(p_url, format, format_param, create_example());
+		calculator_error_proc(p_url, format, format_param, create_example());
 }
 
 int define_ast(int sid) {
@@ -309,26 +313,52 @@ static void skip(const char* symbol) {
 		error("Expected token `%1`", symbol);
 }
 
-static void skip_indent() {
-	int errors = 0;
-	for(auto i = 0; i<scope_ident; i++) {
-		if(*p==' ')
-			p++;
-		else
-			errors++;
+static void skip_line_feed() {
+	if(*p == 0)
+		return;
+	if(*p == 10 || *p == 13) {
+		while(*p == 10 || *p == 13)
+			p = skipcr(p);
+	} else {
+		error("Expected line feed");
+		p = skipline(p);
 	}
-	if(errors)
-		error("Expected ident %1i spaces", scope_ident);
 }
 
-static void next_statement() {
-	if(match(";"))
-		skipws();
-	else if(*p==10 || *p==13 || *p==0)
+static bool same_indent() {
+	auto pb = p;
+	while(*p == ' ')
+		p++;
+	auto idents = p - pb;
+	if(idents > scope_ident) {
+		error("Expected ident %1i spaces", scope_ident);
+		return false;
+	} else if(idents < scope_ident) {
+		p = pb;
+		return false;
+	}
+	return true;
+}
+
+static void end_statement() {
+	while(*p == 10 || *p == 13)
 		p = skipcr(p);
-	else
+}
+
+static bool next_statement() {
+	if(match(";")) {
+		skipws();
+		return true;
+	}
+	if(*p == 10 || *p == 13 || *p == 0) {
+		while(*p == 10 || *p == 13)
+			p = skipcr(p);
+		return same_indent();
+	} else {
 		error("Expected line feed");
-	skip_indent();
+		p = skipline(p);
+		return false;
+	}
 }
 
 static bool isidentifier() {
@@ -400,20 +430,6 @@ int ast_add(operationn op, int left, int right) {
 
 static int ast_add(operationn op, int value) {
 	return ast_add(op, -1, value);
-}
-
-static void add_op(int a) {
-	operation[0] = a;
-	operation++;
-}
-
-static int pop_op() {
-	auto result = -1;
-	if(operation > operations) {
-		operation--;
-		result = operation[0];
-	}
-	return result;
 }
 
 static void parse_number() {
@@ -638,30 +654,17 @@ static void binary(int& a, operationn op, int b) {
 	a = ast_add(op, a, b);
 }
 
-static void unary_operation(operationn v) {
-	if(operation <= operations) {
-		error("Unary operations stack corupt");
-		return;
-	}
-	operation[-1] = ast_add(v, operation[-1]);
-}
-
-static void binary_operation(operationn v) {
-	if(operation <= operations + 1) {
-		error("Binary operations stack corupt");
-		return;
-	}
-	operation[-2] = ast_add(v, operation[-2], operation[-1]);
-	operation--;
-}
-
-static void add_list(int& result, int value) {
+static void add_list(operationn op, int& result, int value) {
 	if(value == -1)
 		return;
 	if(result == -1)
 		result = value;
 	else
-		result = ast_add(List, result, value);
+		result = ast_add(op, result, value);
+}
+
+static void add_list(int& result, int value) {
+	add_list(List, result, value);
 }
 
 static int parameter_list() {
@@ -680,45 +683,31 @@ static int unary(operationn op, int b) {
 }
 
 static int unary() {
-	if(match("--")) {
-		skipws(2);
+	if(match("--"))
 		return unary();
-	} else if(match("-")) {
-		skipws(1);
+	else if(match("-"))
 		return unary(Neg, unary());
-	} else if(p[0] == '+') {
-		if(p[1] == '+') {
-			skipws(2);
-			return unary();
-		} else {
-			skipws(1);
-			return unary();
-		}
-	} else if(p[0]=='!') {
-		skipws(1);
+	else if(match("++"))
+		return unary();
+	else if(match("+"))
+		return unary();
+	else if(match("!"))
 		return unary(Not, unary());
-	} else if(p[0]=='*') {
-		skipws(1);
+	else if(match("*"))
 		return unary(Dereference, unary());
-	} else if(p[0]=='&') {
-		skipws(1);
+	else if(match("&"))
 		return unary(AdressOf, unary());
-	} else if(p[0]=='(') {
-		skipws(1);
+	else if(match("(")) {
 		parse_type();
-		if(last_type != -1 && *p == ')') {
-			auto type = last_type;
-			skipws(1);
-			return ast_add(Cast, type, unary());
-		} else {
-			auto a = expression();
-			skip(")");
-			return a;
-		}
-	} else if(p[0]=='\"') {
+		if(last_type != -1 && match(")"))
+			return ast_add(Cast, last_type, unary());
+		auto a = expression();
+		skip(")");
+		return a;
+	} else if(p[0] == '\"') {
 		literal();
 		return ast_add(Text, strings.add(last_string));
-	} else if(p[0]>='0' && p[0]<='9') {
+	} else if(p[0] >= '0' && p[0] <= '9') {
 		parse_number();
 		return ast_add(Number, last_number);
 	} else if(isidentifier()) {
@@ -760,8 +749,7 @@ static int postfix() {
 			auto sid = find_variable(ids);
 			if(sid == -1)
 				sid = create_symbol(ids, i32, 0, -1, module_sid);
-			add_op(ast_add(Identifier, sid));
-			binary_operation(Point);
+			binary(a, Point, sid);
 		} else
 			break;
 	}
@@ -897,25 +885,8 @@ static int expression() {
 	return result;
 }
 
-static int parse_initialization_list() {
-	if(match("{")) {
-		auto result = -1;
-		do {
-			auto p1 = p;
-			parse_initialization_list();
-			if(p1 == p)
-				break;
-			add_list(result, pop_op());
-		} while(match(","));
-		add_op(ast_add(Initialization, result));
-		skip("}");
-	} else
-		return expression();
-}
-
 static int initialization_list() {
-	parse_initialization_list();
-	return pop_op();
+	return expression();
 }
 
 static int getmoduleposition() {
@@ -923,7 +894,7 @@ static int getmoduleposition() {
 }
 
 static int parse_assigment() {
-	auto a = unary();
+	auto a = postfix();
 	while(p[0] == '=') {
 		skipws(1);
 		binary(a, Assign, expression());
@@ -963,11 +934,11 @@ static int parse_local_declaration() {
 }
 
 static bool islinefeed() {
-	return *p==10 || *p==13;
+	return *p == 10 || *p == 13;
 }
 
 static bool isend() {
-	if(*p==10 || *p==13) {
+	if(*p == 10 || *p == 13) {
 		p = skipcr(p);
 		return true;
 	}
@@ -976,30 +947,33 @@ static bool isend() {
 
 static int statements();
 
-static int parse_statement() {
+static int statement() {
 	if(match("pass"))
 		return -1;
 	else if(match("if")) {
 		auto e = expression();
 		auto s = statements();
-		return ast_add(If, e, s);
+		auto r = ast_add(If, e, s);
+		while(match("elif")) {
+			auto e = expression();
+			auto s = statements();
+			add_list(Case, r, ast_add(If, e, s));
+		}
+		if(match("else")) {
+			auto s = statements();
+			add_list(Default, r, ast_add(If, s));
+		}
+		return r;
 	} else if(match("while")) {
 		auto e = expression();
 		auto s = statements();
 		return ast_add(While, e, s);
 	} else if(match("for")) {
-		skip("(");
-		parse_local_declaration();
-		auto bs = pop_op();
-		auto e = expression();
-		skip(";");
-		auto es = expression();
-		skip(")");
-		parse_statement();
-		auto s = pop_op();
-		add_list(s, es);
-		add_list(bs, ast_add(While, e, s));
-		add_op(bs);
+		auto v = parse_local_declaration();
+		skip("in");
+		auto c = expression();
+		auto s = statements();
+		return ast_add(While, ast_add(In, v, c), s);
 	} else if(match("return"))
 		return ast_add(Return, expression());
 	else
@@ -1009,8 +983,9 @@ static int parse_statement() {
 static int statements() {
 	scopei push_scope(getmoduleposition());
 	auto r = -1;
-	while(isend())
-		add_list(r, parse_statement());
+	while(next_statement())
+		add_list(r, statement());
+	end_statement();
 	return r;
 }
 
@@ -1029,7 +1004,6 @@ static void parse_enum() {
 			break;
 	}
 	skip("}");
-	skip(";");
 }
 
 static void parse_parameters() {
@@ -1065,16 +1039,10 @@ static void parse_declaration() {
 		auto sid = create_symbol(ids, type, flags, -1, module_sid, "Module member `%1` is already defined");
 		if(match("(")) {
 			symbol_set(sid, Function);
-			auto push_params = function_params;
-			auto push_scope_maximum = scope_maximum;
-			scope_maximum = 0;
-			function_params = sid;
+			pushparam push(sid);
 			parse_parameters();
-			parse_statement();
-			symbol_ast(pop_op());
+			symbol_ast(sid, statements());
 			symbol_frame(sid, scope_maximum);
-			scope_maximum = push_scope_maximum;
-			function_params = push_params;
 			break;
 		} else {
 			parse_array_declaration(sid);
@@ -1084,7 +1052,7 @@ static void parse_declaration() {
 				symbol_ast(sid, initialization_list());
 			if(match(","))
 				continue;
-			skip(";");
+			end_statement();
 			break;
 		}
 	}
@@ -1159,6 +1127,7 @@ static void add_symbol(sectionn v, const char* id) {
 
 static void symbol_initialize() {
 	add_symbol(Void, "void");
+	add_symbol(Auto, "auto");
 	add_symbol(i8, "char");
 	add_symbol(u8, "uchar");
 	add_symbol(i16, "short");
@@ -1175,7 +1144,6 @@ static void symbol_initialize() {
 
 static void calculator_initialize() {
 	symbol_initialize();
-	operation = operations;
 	function_params = -1;
 }
 

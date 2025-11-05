@@ -8,11 +8,11 @@ enum operationn {
 	Less, LessEqual, Greater, GreaterEqual, Equal, NotEqual,
 	Or, And,
 	Increment, Decrement, AdressOf, Dereference, Scope, Cast, Point,
-	Assign, If, While, Return, Switch, Case, Break, Continue, Default,
+	Assign, If, Else, While, For, Return, Switch, Case, Break, Continue, Default, In,
 	Number, Text, Identifier, List, Initialization,
 };
 enum symboln {
-	Void, i8, u8, i16, u16, i32, u32, i64, u64,
+	Void, Auto, i8, u8, i16, u16, i32, u32, i64, u64,
 };
 enum symbolfn {
 	Static, Public, Predefined, UseRead, UseWrite, Complete, Function,
