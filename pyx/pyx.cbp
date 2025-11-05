@@ -41,6 +41,7 @@
 		<Unit filename="../support/flagable.h" />
 		<Unit filename="../support/io_stream.cpp" />
 		<Unit filename="../support/io_stream.h" />
+		<Unit filename="../support/langparse.h" />
 		<Unit filename="../support/math.cpp" />
 		<Unit filename="../support/math.h" />
 		<Unit filename="../support/slice.h" />

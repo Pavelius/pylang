@@ -309,6 +309,28 @@ static void skip(const char* symbol) {
 		error("Expected token `%1`", symbol);
 }
 
+static void skip_indent() {
+	int errors = 0;
+	for(auto i = 0; i<scope_ident; i++) {
+		if(*p==' ')
+			p++;
+		else
+			errors++;
+	}
+	if(errors)
+		error("Expected ident %1i spaces", scope_ident);
+}
+
+static void next_statement() {
+	if(match(";"))
+		skipws();
+	else if(*p==10 || *p==13 || *p==0)
+		p = skipcr(p);
+	else
+		error("Expected line feed");
+	skip_indent();
+}
+
 static bool isidentifier() {
 	return ischa(*p);
 }
@@ -658,14 +680,12 @@ static int unary(operationn op, int b) {
 }
 
 static int unary() {
-	if(p[0] == '-') {
-		if(p[1] == '-') {
-			skipws(2);
-			return unary();
-		} else {
-			skipws(1);
-			return unary(Neg, unary());
-		}
+	if(match("--")) {
+		skipws(2);
+		return unary();
+	} else if(match("-")) {
+		skipws(1);
+		return unary(Neg, unary());
 	} else if(p[0] == '+') {
 		if(p[1] == '+') {
 			skipws(2);
@@ -954,41 +974,19 @@ static bool isend() {
 	return false;
 }
 
-static void parse_statement() {
-	if(isend()) {
-		scopei push_scope(getmoduleposition());
-		auto push_p = p;
-		auto previous = -1;
-		while(*p && !islinefeed()) {
-			parse_statement();
-			add_list(previous, pop_op());
-			if(p == push_p)
-				break;
-		}
-		add_op(previous);
-	} else if(match("pass")) {
-		// Empthy statement
-	} else if(match("if")) {
-		skip("(");
+static int statements();
+
+static int parse_statement() {
+	if(match("pass"))
+		return -1;
+	else if(match("if")) {
 		auto e = expression();
-		skip(")");
-		parse_statement();
-		auto s = pop_op();
-		add_op(ast_add(If, s, e));
-	} else if(match("swith")) {
-		skip("(");
-		auto e = expression();
-		skip(")");
-		parse_statement();
-		auto s = pop_op();
-		add_op(ast_add(Switch, s, e));
+		auto s = statements();
+		return ast_add(If, e, s);
 	} else if(match("while")) {
-		skip("(");
 		auto e = expression();
-		skip(")");
-		parse_statement();
-		auto s = pop_op();
-		add_op(ast_add(While, s, e));
+		auto s = statements();
+		return ast_add(While, e, s);
 	} else if(match("for")) {
 		skip("(");
 		parse_local_declaration();
@@ -1002,20 +1000,18 @@ static void parse_statement() {
 		add_list(s, es);
 		add_list(bs, ast_add(While, e, s));
 		add_op(bs);
-	} else if(match("return")) {
-		add_op(ast_add(Return, expression()));
-		skip(";");
-	} else if(match("case")) {
-		add_op(ast_add(Case, expression()));
-		skip(":");
-	} else if(match("break")) {
-		add_op(ast_add(Break, -1));
-		skip(";");
-	} else if(match("continue")) {
-		add_op(ast_add(Continue, -1));
-		skip(";");
-	} else
-		parse_local_declaration();
+	} else if(match("return"))
+		return ast_add(Return, expression());
+	else
+		return parse_local_declaration();
+}
+
+static int statements() {
+	scopei push_scope(getmoduleposition());
+	auto r = -1;
+	while(isend())
+		add_list(r, parse_statement());
+	return r;
 }
 
 static void parse_enum() {
@@ -1074,10 +1070,8 @@ static void parse_declaration() {
 			scope_maximum = 0;
 			function_params = sid;
 			parse_parameters();
-			if(!match(";")) {
-				parse_statement();
-				symbol_ast(pop_op());
-			}
+			parse_statement();
+			symbol_ast(pop_op());
 			symbol_frame(sid, scope_maximum);
 			scope_maximum = push_scope_maximum;
 			function_params = push_params;

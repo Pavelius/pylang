@@ -2,12 +2,14 @@
 
 scopei*	current_scope;
 int		scope_maximum;
+int		scope_ident;
 
 scopei::scopei(int value) {
 	scope = value;
 	size = 0;
 	previous = current_scope;
 	current_scope = this;
+	scope_ident++;
 }
 
 scopei::~scopei() {
@@ -15,6 +17,7 @@ scopei::~scopei() {
 	if(scope_maximum < n)
 		scope_maximum = n;
 	current_scope = previous;
+	scope_ident--;
 }
 
 int scopei::getsize() const {
@@ -27,4 +30,5 @@ int scopei::getsize() const {
 void scope_clear() {
 	current_scope = 0;
 	scope_maximum = 0;
+	scope_ident = 0;
 }

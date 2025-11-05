@@ -273,10 +273,10 @@
 
 1762340521 /home/user-331/projects/pylang/pyx/section.h
 
-1762334064 source:/home/user-331/projects/pylang/pyx/scope.cpp
+1762356862 source:/home/user-331/projects/pylang/pyx/scope.cpp
 	"scope.h"
 
-1762334071 /home/user-331/projects/pylang/pyx/scope.h
+1762356867 /home/user-331/projects/pylang/pyx/scope.h
 
 1762336278 source:/home/user-331/projects/pylang/pyx/scripter.cpp
 	"bsdata.h"
@@ -286,4 +286,19 @@
 	"bsdata.h"
 	"slice.h"
 	"section.h"
+
+1762355834 source:/home/user-331/projects/pylang/pyx/calculator.cpp
+	"bsdata.h"
+	"calculator.h"
+	"flagable.h"
+	"io_stream.h"
+	"langparse.h"
+	"scope.h"
+	"section.h"
+	"stringbuilder.h"
+	"stringa.h"
+
+1755759613 /home/user-331/projects/pylang/support/flagable.h
+
+1762355985 /home/user-331/projects/pylang/support/langparse.h
 
