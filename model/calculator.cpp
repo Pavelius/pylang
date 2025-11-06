@@ -14,12 +14,14 @@ BSDATAD(symboli)
 calculator_fnprint	calculator_error_proc;
 static int			function_params;
 static int			last_type;
+static int			last_ident;
 static unsigned		last_flags;
 static long			last_number;
 static char			last_string[256 * 256];
 static const char*	p;
 static const char*	p_start;
 static const char*	p_url;
+static const char*	p_start_line;
 static stringa		strings;
 static int			errors_count;
 
@@ -37,6 +39,15 @@ struct pushparam {
 	int params, scope;
 	pushparam(int sid) : params(function_params), scope(scope_maximum) { scope_maximum = 0; function_params = sid; }
 	~pushparam() { function_params = params; scope_maximum = scope; }
+};
+struct pushfile {
+	const char* pointer;
+	const char* start;
+	const char* start_line;
+	const char* url;
+	int ident;
+	pushfile(const char* p1) : pointer(p), start(p_start), start_line(p_start_line), url(p_url), ident(last_ident) { p = p1; p_start = p1; p_start_line = p1; last_ident = 0; }
+	~pushfile() { p = pointer; p_start = start; p_start_line = start_line; p_url = url; last_ident = ident; }
 };
 
 int symboli::getindex() const {
@@ -281,21 +292,17 @@ static void skipws(int count) {
 	skipws();
 }
 
-static bool same_indent() {
-	auto pb = p;
-	while(*p == 10 || *p == 13)
-		p = skipcr(p);
-	auto pn = p;
-	while(*p == ' ')
-		p++;
-	auto idents = p - pn;
-	if(idents > scope_ident)
-		error("Expected ident %1i spaces", scope_ident);
-	else if(idents < scope_ident) {
-		p = pb;
-		return false;
+static void skip_line_feed() {
+	while(p[0] == 10 || p[0] == 13) {
+		while(p[0] == 10 || p[0] == 13)
+			p = skipcr(p);
+		auto pb = p;
+		while(*p == ' ')
+			p++;
+		last_ident = p - pb;
+		p_start_line = p;
+		skipws();
 	}
-	return true;
 }
 
 static bool match(const char* symbol) {
@@ -308,14 +315,6 @@ static bool match(const char* symbol) {
 	p += i;
 	skipws();
 	return true;
-}
-
-static bool match_ident(const char* symbol) {
-	auto pb = p;
-	if(same_indent() && match(symbol))
-		return true;
-	p = pb;
-	return false;
 }
 
 static bool word(const char* symbol) {
@@ -338,23 +337,19 @@ static void skip(const char* symbol) {
 		error("Expected token `%1`", symbol);
 }
 
-static void end_statement() {
-	while(*p == 10 || *p == 13)
-		p = skipcr(p);
-}
-
 static bool next_statement() {
+	if(!p[0])
+		return false;
 	if(match(";")) {
 		skipws();
 		return true;
 	}
-	if(*p == 10 || *p == 13 || *p == 0)
-		return same_indent();
-	else {
-		error("Expected line feed");
-		p = skipline(p);
+	skip_line_feed();
+	if(last_ident > scope_ident)
+		error("Expected ident %1i spaces", scope_ident);
+	else if(last_ident < scope_ident)
 		return false;
-	}
+	return true;
 }
 
 static bool isidentifier() {
@@ -921,14 +916,14 @@ static int binary_shift() {
 
 static int logical_and() {
 	auto a = binary_shift();
-	while(match("&&"))
+	while(match("and"))
 		binary(a, And, binary_shift());
 	return a;
 }
 
 static int logical_or() {
 	auto a = logical_and();
-	while(match("||"))
+	while(match("or"))
 		binary(a, Or, logical_and());
 	return a;
 }
@@ -1015,14 +1010,28 @@ static int statement() {
 		auto e = expression();
 		auto s = statements();
 		auto r = ast_add(If, e, s);
-		while(match_ident("elif")) {
+		while(match("elif")) {
+			auto e = expression();
+			auto s = statements();
+			add_list(Else, r, ast_add(If, e, s));
+		}
+		if(match("else")) {
+			auto s = statements();
+			add_list(Default, r, ast_add(If, s));
+		}
+		return r;
+	} else if(match("match")) {
+		auto e = expression();
+		auto r = ast_add(Switch, e);
+		scopei push_scope(getmoduleposition());
+		if(!next_statement()) {
+			error("Expected statement");
+			return -1;
+		}
+		while(match("case")) {
 			auto e = expression();
 			auto s = statements();
 			add_list(Case, r, ast_add(If, e, s));
-		}
-		if(match_ident("else")) {
-			auto s = statements();
-			add_list(Default, r, ast_add(If, s));
 		}
 		return r;
 	} else if(match("while")) {
@@ -1073,7 +1082,6 @@ static void parse_enum() {
 			break;
 	}
 	skip("}");
-	end_statement();
 }
 
 static void parse_parameters() {
@@ -1113,7 +1121,6 @@ static void parse_declaration() {
 			parse_parameters();
 			symbol_ast(sid, statements());
 			symbol_frame(sid, scope_maximum);
-			end_statement();
 			break;
 		} else {
 			parse_array_declaration(sid);
@@ -1123,7 +1130,6 @@ static void parse_declaration() {
 				symbol_ast(sid, initialization_list());
 			if(match(","))
 				continue;
-			end_statement();
 			break;
 		}
 	}
@@ -1140,7 +1146,6 @@ static void parse_import() {
 		auto als = strings.add(last_string);
 		create_define(als, ast_add(Identifier, sid));
 	}
-	end_statement();
 }
 
 static void parse_define() {
@@ -1154,6 +1159,7 @@ static void parse_define() {
 
 static void parse_module() {
 	while(*p) {
+		skip_line_feed();
 		auto push_p = p;
 		parse_import();
 		if(p != push_p)
@@ -1171,16 +1177,6 @@ static void parse_module() {
 			error("Expected declaration");
 		break;
 	}
-}
-
-void calculator_parse(const char* code) {
-	auto push_p = p;
-	auto push_p_start = p_start;
-	p = code;
-	p_start = code;
-	expression();
-	p_start = push_p_start;
-	p = push_p;
 }
 
 static void add_symbol(symboln v, const char* id) {
@@ -1219,6 +1215,11 @@ static void calculator_initialize() {
 	function_params = -1;
 }
 
+void calculator_parse(const char* code) {
+	pushfile push(code);
+	expression();
+}
+
 void calculator_file_parse(const char* url) {
 	auto p1 = loadt(url);
 	if(!p1) {
@@ -1226,15 +1227,10 @@ void calculator_file_parse(const char* url) {
 		return;
 	}
 	calculator_initialize();
-	auto push_p = p;
-	auto push_p_start = p_start;
-	auto push_p_url = p_url;
-	p = p1; p_start = p1; p_url = url;
+	pushfile push(p1);
+	p_url = url;
 	skipws();
 	parse_module();
-	p_url = push_p_url;
-	p_start = push_p_start;
-	p = push_p;
 	delete p1;
 }
 

@@ -130,13 +130,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\model\calculator.cpp" />
+    <ClCompile Include="..\model\main.cpp" />
+    <ClCompile Include="..\model\scope.cpp" />
+    <ClCompile Include="..\model\scripter.cpp" />
+    <ClCompile Include="..\model\section.cpp" />
     <ClCompile Include="..\platform\win_console.cpp" />
     <ClCompile Include="..\platform\win_io_file.cpp" />
-    <ClCompile Include="..\pyx\calculator.cpp" />
-    <ClCompile Include="..\pyx\main.cpp" />
-    <ClCompile Include="..\pyx\scope.cpp" />
-    <ClCompile Include="..\pyx\scripter.cpp" />
-    <ClCompile Include="..\pyx\section.cpp" />
     <ClCompile Include="..\support\array.cpp" />
     <ClCompile Include="..\support\io_stream.cpp" />
     <ClCompile Include="..\support\math.cpp" />
@@ -144,10 +144,10 @@
     <ClCompile Include="..\support\stringbuilder.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\model\calculator.h" />
+    <ClInclude Include="..\model\scope.h" />
+    <ClInclude Include="..\model\section.h" />
     <ClInclude Include="..\platform\win.h" />
-    <ClInclude Include="..\pyx\calculator.h" />
-    <ClInclude Include="..\pyx\scope.h" />
-    <ClInclude Include="..\pyx\section.h" />
     <ClInclude Include="..\support\array.h" />
     <ClInclude Include="..\support\bsdata.h" />
     <ClInclude Include="..\support\flagable.h" />

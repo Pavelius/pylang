@@ -16,21 +16,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\pyx\calculator.cpp">
-      <Filter>lang</Filter>
-    </ClCompile>
-    <ClCompile Include="..\pyx\main.cpp">
-      <Filter>lang</Filter>
-    </ClCompile>
-    <ClCompile Include="..\pyx\scope.cpp">
-      <Filter>lang</Filter>
-    </ClCompile>
-    <ClCompile Include="..\pyx\scripter.cpp">
-      <Filter>lang</Filter>
-    </ClCompile>
-    <ClCompile Include="..\pyx\section.cpp">
-      <Filter>lang</Filter>
-    </ClCompile>
     <ClCompile Include="..\support\array.cpp">
       <Filter>support</Filter>
     </ClCompile>
@@ -52,17 +37,23 @@
     <ClCompile Include="..\platform\win_console.cpp">
       <Filter>platform</Filter>
     </ClCompile>
+    <ClCompile Include="..\model\calculator.cpp">
+      <Filter>lang</Filter>
+    </ClCompile>
+    <ClCompile Include="..\model\main.cpp">
+      <Filter>lang</Filter>
+    </ClCompile>
+    <ClCompile Include="..\model\scope.cpp">
+      <Filter>lang</Filter>
+    </ClCompile>
+    <ClCompile Include="..\model\scripter.cpp">
+      <Filter>lang</Filter>
+    </ClCompile>
+    <ClCompile Include="..\model\section.cpp">
+      <Filter>lang</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\pyx\calculator.h">
-      <Filter>lang</Filter>
-    </ClInclude>
-    <ClInclude Include="..\pyx\scope.h">
-      <Filter>lang</Filter>
-    </ClInclude>
-    <ClInclude Include="..\pyx\section.h">
-      <Filter>lang</Filter>
-    </ClInclude>
     <ClInclude Include="..\support\array.h">
       <Filter>support</Filter>
     </ClInclude>
@@ -92,6 +83,15 @@
     </ClInclude>
     <ClInclude Include="..\platform\win.h">
       <Filter>platform</Filter>
+    </ClInclude>
+    <ClInclude Include="..\model\calculator.h">
+      <Filter>lang</Filter>
+    </ClInclude>
+    <ClInclude Include="..\model\scope.h">
+      <Filter>lang</Filter>
+    </ClInclude>
+    <ClInclude Include="..\model\section.h">
+      <Filter>lang</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
