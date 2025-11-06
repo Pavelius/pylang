@@ -33,7 +33,7 @@
 		<Compiler>
 			<Add option="-Wall" />
 		</Compiler>
-		<Unit filename="../code/test/main.py" />
+		<Unit filename="../code/test/main.pcn" />
 		<Unit filename="../platform/nix_io_file.cpp" />
 		<Unit filename="../support/array.cpp" />
 		<Unit filename="../support/array.h" />

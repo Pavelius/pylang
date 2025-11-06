@@ -283,13 +283,15 @@ static void skipws(int count) {
 
 static bool same_indent() {
 	auto pb = p;
+	while(*p == 10 || *p == 13)
+		p = skipcr(p);
+	auto pn = p;
 	while(*p == ' ')
 		p++;
-	auto idents = p - pb;
-	if(idents > scope_ident) {
+	auto idents = p - pn;
+	if(idents > scope_ident)
 		error("Expected ident %1i spaces", scope_ident);
-		return false;
-	} else if(idents < scope_ident) {
+	else if(idents < scope_ident) {
 		p = pb;
 		return false;
 	}
@@ -336,18 +338,6 @@ static void skip(const char* symbol) {
 		error("Expected token `%1`", symbol);
 }
 
-static void skip_line_feed() {
-	if(*p == 0)
-		return;
-	if(*p == 10 || *p == 13) {
-		while(*p == 10 || *p == 13)
-			p = skipcr(p);
-	} else {
-		error("Expected line feed");
-		p = skipline(p);
-	}
-}
-
 static void end_statement() {
 	while(*p == 10 || *p == 13)
 		p = skipcr(p);
@@ -358,11 +348,9 @@ static bool next_statement() {
 		skipws();
 		return true;
 	}
-	if(*p == 10 || *p == 13 || *p == 0) {
-		while(*p == 10 || *p == 13)
-			p = skipcr(p);
+	if(*p == 10 || *p == 13 || *p == 0)
 		return same_indent();
-	} else {
+	else {
 		error("Expected line feed");
 		p = skipline(p);
 		return false;
@@ -414,7 +402,7 @@ static void find_type(int ast, int& result) {
 		find_type(p->right, result);
 }
 
-static int findast(operationn op, int left, int right) {
+static int find_ast(operationn op, int left, int right) {
 	for(auto& e : bsdata<asti>()) {
 		if(e.op == op && e.left == left && e.right == right)
 			return &e - bsdata<asti>::begin();
@@ -485,9 +473,9 @@ static void optimize(operationn& op, int& left, int& right) {
 
 int ast_add(operationn op, int left, int right) {
 	optimize(op, left, right);
-	auto sid = findast(op, left, right);
+	auto sid = find_ast(op, left, right);
 	if(sid == -1 && !isstrict(op))
-		sid = findast(op, right, left);
+		sid = find_ast(op, right, left);
 	if(sid == -1) {
 		auto p = bsdata<asti>::add();
 		p->op = op;
@@ -781,6 +769,9 @@ static int unary() {
 		parse_number();
 		return ast_add(Number, last_number);
 	} else if(isidentifier()) {
+		parse_type();
+		if(last_type!=-1)
+			return ast_add(Identifier, last_type);
 		parse_identifier();
 		auto ids = strings.add(last_string);
 		auto idf = find_define(ids);
@@ -930,19 +921,15 @@ static int binary_shift() {
 
 static int logical_and() {
 	auto a = binary_shift();
-	while(p[0] == '&' && p[1] == '&') {
-		skipws(2);
+	while(match("&&"))
 		binary(a, And, binary_shift());
-	}
 	return a;
 }
 
 static int logical_or() {
 	auto a = logical_and();
-	while(p[0] == '|' && p[1] == '|') {
-		skipws(2);
+	while(match("||"))
 		binary(a, Or, logical_and());
-	}
 	return a;
 }
 
@@ -963,7 +950,7 @@ static int getmoduleposition() {
 	return p - p_start;
 }
 
-static int parse_assigment() {
+static int assigment() {
 	auto a = expression();
 	while(p[0] == '=') {
 		skipws(1);
@@ -1000,7 +987,7 @@ static int parse_local_declaration() {
 		symbol_instance(sid, LocalSection);
 		return ast_add(Assign, sid, symbol_ast(sid));
 	} else
-		return parse_assigment();
+		return assigment();
 }
 
 static bool islinefeed() {
@@ -1016,6 +1003,10 @@ static bool isend() {
 }
 
 static int statements();
+
+static void error_encounter(const char* p1, const char* p2) {
+	error("Encouter `%1` without `%2` statement", p1, p2);
+}
 
 static int statement() {
 	if(match("pass"))
@@ -1038,6 +1029,15 @@ static int statement() {
 		auto e = expression();
 		auto s = statements();
 		return ast_add(While, e, s);
+	} else if(match("elif")) {
+		auto e = expression();
+		auto s = statements();
+		error_encounter("elif", "if");
+		return -1;
+	} else if(match("else")) {
+		auto s = statements();
+		error_encounter("else", "if");
+		return -1;
 	} else if(match("for")) {
 		auto v = parse_local_declaration();
 		skip("in");
@@ -1055,7 +1055,6 @@ static int statements() {
 	auto r = -1;
 	while(next_statement())
 		add_list(r, statement());
-	end_statement();
 	return r;
 }
 
@@ -1204,7 +1203,7 @@ static void symbol_initialize() {
 	add_symbol(i16, "short");
 	add_symbol(u16, "ushort");
 	add_symbol(i32, "int");
-	add_symbol(u32, "unsigned");
+	add_symbol(u32, "uint");
 	add_symbol(i64, "long");
 	add_symbol(u64, "ulong");
 	add_symbol(ModuleSection, ".module");
