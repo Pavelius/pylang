@@ -1073,6 +1073,7 @@ static void parse_enum() {
 			break;
 	}
 	skip("}");
+	end_statement();
 }
 
 static void parse_parameters() {
@@ -1112,6 +1113,7 @@ static void parse_declaration() {
 			parse_parameters();
 			symbol_ast(sid, statements());
 			symbol_frame(sid, scope_maximum);
+			end_statement();
 			break;
 		} else {
 			parse_array_declaration(sid);

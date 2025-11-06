@@ -11,7 +11,7 @@ void LastGame(int y)
  int a = y + 10
  int b = a + 15
  if a<b
-  a++; a<b
+  a++; a<b; int z = 10; z = z + 5
  elif a>b
   a--
  return a / 2
