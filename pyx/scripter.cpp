@@ -2,9 +2,8 @@
 #include "calculator.h"
 
 struct evaluei {
-	int		type;
-	int		value;
-	void	clear() { type = i32; value = 0; }
+	int	type, value;
+	void clear() { type = i32; value = 0; }
 };
 
 static void error(const char* format, ...) {
@@ -31,32 +30,6 @@ static bool isnumber(int type) {
 }
 
 static void dereference(evaluei* p) {
-}
-
-static int arifmetic(operationn op, int v1, int v2) {
-	switch(op) {
-	case Plus: return v1 + v2;
-	case Minus: return v1 - v2;
-	case Mul: return v1 * v2;
-	case Div: return v1 / v2;
-	case DivRest: return v1 % v2;
-	case BinaryOr: return v1 | v2;
-	case BinaryAnd: return v1 & v2;
-	case BinaryXor: return v1 ^ v2;
-	case ShiftLeft: return v1 << v2;
-	case ShiftRight: return v1 >> v2;
-	case Less: return v1 < v2;
-	case LessEqual: return v1 <= v2;
-	case Greater: return v1 > v2;
-	case GreaterEqual: return v1 >= v2;
-	case Equal: return v1 == v2;
-	case NotEqual: return v1 != v2;
-	case Or: return (v1 || v2) ? 1 : 0;
-	case And: return (v1 && v2) ? 1 : 0;
-	case Neg: return -v1;
-	case Not: return v1 ? 0 : 1;
-	default: return v1;
-	}
 }
 
 static void binary_operation(operationn op, evaluei& e1, evaluei& e2) {

@@ -98,5 +98,8 @@
     <None Include="..\code\test\main.pcn">
       <Filter>code</Filter>
     </None>
+    <None Include="..\code\test\rect.pcn">
+      <Filter>code</Filter>
+    </None>
   </ItemGroup>
 </Project>

@@ -160,6 +160,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\code\test\main.pcn" />
+    <None Include="..\code\test\rect.pcn" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

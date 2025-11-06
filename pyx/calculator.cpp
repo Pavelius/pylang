@@ -422,7 +422,69 @@ static int findast(operationn op, int left, int right) {
 	return -1;
 }
 
+static int check_zero(int value, const char* format_error) {
+	if(!value) {
+		value = 1;
+		error(format_error);
+	}
+	return value;
+}
+
+static int check_zero(int value) {
+	return check_zero(value, "Division by zero");
+}
+
+int arifmetic(operationn op, int v1, int v2) {
+	switch(op) {
+	case Plus: return v1 + v2;
+	case Minus: return v1 - v2;
+	case Mul: return v1 * v2;
+	case Div: return v1 / check_zero(v2);
+	case DivRest: return v1 % check_zero(v2);
+	case BinaryOr: return v1 | v2;
+	case BinaryAnd: return v1 & v2;
+	case BinaryXor: return v1 ^ v2;
+	case ShiftLeft: return v1 << v2;
+	case ShiftRight: return v1 >> v2;
+	case Less: return v1 < v2;
+	case LessEqual: return v1 <= v2;
+	case Greater: return v1 > v2;
+	case GreaterEqual: return v1 >= v2;
+	case Equal: return v1 == v2;
+	case NotEqual: return v1 != v2;
+	case Or: return (v1 || v2) ? 1 : 0;
+	case And: return (v1 && v2) ? 1 : 0;
+	case Neg: return -v1;
+	case Not: return v1 ? 0 : 1;
+	default: return v1;
+	}
+}
+
+static asti ast_object(int i) {
+	if(i == -1)
+		return {Nop, -1, -1};
+	return bsdata<asti>::get(i);
+}
+
+// Optimize operation before ut to syntax tree
+static void optimize(operationn& op, int& left, int& right) {
+	if(isterminal(op))
+		return;
+	asti p1 = ast_object(left);
+	asti p2 = ast_object(right);
+	if(p1.op == Number && p2.op == Number) {
+		right = arifmetic(op, p1.right, p2.right);
+		left = -1;
+		op = Number;
+	} else if(p1.op == Nop && p2.op == Number) {
+		right = arifmetic(op, p1.right, -1);
+		left = -1;
+		op = Number;
+	}
+}
+
 int ast_add(operationn op, int left, int right) {
+	optimize(op, left, right);
 	auto sid = findast(op, left, right);
 	if(sid == -1 && !isstrict(op))
 		sid = findast(op, right, left);
@@ -502,7 +564,7 @@ static int create_define(int ids, int ast, const char* error_format) {
 	return sid;
 }
 
-static int create_symbol(int id, int type, unsigned flags, int scope, int parent) {
+int create_symbol(int id, int type, unsigned flags, int scope, int parent) {
 	auto p = bsdata<symboli>::add();
 	p->ids = id;
 	if(scope == -1)
@@ -757,7 +819,7 @@ static int postfix() {
 			auto sid = find_variable(ids);
 			if(sid == -1)
 				sid = create_symbol(ids, i32, 0, -1, module_sid);
-			binary(a, Point, sid);
+			binary(a, Point, ast_add(Identifier, sid));
 		} else
 			break;
 	}
@@ -1077,6 +1139,7 @@ static void parse_import() {
 		auto als = strings.add(last_string);
 		create_define(als, ast_add(Identifier, sid));
 	}
+	end_statement();
 }
 
 static void parse_define() {

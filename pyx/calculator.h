@@ -71,8 +71,10 @@ void symbol_scope(int sid, int value);
 void symbol_set(int sid, symbolfn v);
 void symbol_type(int sid, int value);
 
+int arifmetic(operationn op, int v1, int v2);
 int ast_add(operationn op, int left, int right);
 int const_number(int ast);
+int create_symbol(int id, int type, unsigned flags, int scope, int parent);
 int define_ast(int sid);
 int dereference(int type);
 int find_symbol(int ids, int scope, int parent);
