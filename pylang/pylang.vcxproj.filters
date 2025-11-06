@@ -66,9 +66,6 @@
     <ClInclude Include="..\support\io_stream.h">
       <Filter>support</Filter>
     </ClInclude>
-    <ClInclude Include="..\support\langparse.h">
-      <Filter>support</Filter>
-    </ClInclude>
     <ClInclude Include="..\support\math.h">
       <Filter>support</Filter>
     </ClInclude>

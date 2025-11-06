@@ -72,6 +72,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <IncludePath>$(SolutionDir)support</IncludePath>
+    <ExternalIncludePath />
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -152,7 +153,6 @@
     <ClInclude Include="..\support\bsdata.h" />
     <ClInclude Include="..\support\flagable.h" />
     <ClInclude Include="..\support\io_stream.h" />
-    <ClInclude Include="..\support\langparse.h" />
     <ClInclude Include="..\support\math.h" />
     <ClInclude Include="..\support\slice.h" />
     <ClInclude Include="..\support\stringa.h" />
