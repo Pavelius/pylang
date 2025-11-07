@@ -20,7 +20,6 @@ void LoadTask(int y)
  return a / 2
 
 # This function test nested `if` statements
-
 void TestIfStatements()
  if x > 10
   print("Above ten, ")

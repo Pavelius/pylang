@@ -248,11 +248,11 @@
 1755670326 source:/home/user-331/projects/pylang/support/math.cpp
 	"math.h"
 
-1762334141 source:/home/user-331/projects/pylang/support/stringa.cpp
+1762498692 source:/home/user-331/projects/pylang/support/stringa.cpp
 	"stringa.h"
 	"stringbuilder.h"
 
-1762334152 /home/user-331/projects/pylang/support/stringa.h
+1762498692 /home/user-331/projects/pylang/support/stringa.h
 	"array.h"
 
 1762334409 source:/home/user-331/projects/pylang/support/stringbuilder.cpp
@@ -300,4 +300,39 @@
 1755759613 /home/user-331/projects/pylang/support/flagable.h
 
 1762355985 /home/user-331/projects/pylang/support/langparse.h
+
+1762498692 source:/home/user-331/projects/pylang/model/main.cpp
+	"bsdata.h"
+	"calculator.h"
+	"io_stream.h"
+	"section.h"
+	"stringbuilder.h"
+
+1762498807 /home/user-331/projects/pylang/model/calculator.h
+
+1762498692 /home/user-331/projects/pylang/model/section.h
+
+1762498692 source:/home/user-331/projects/pylang/model/scope.cpp
+	"scope.h"
+
+1762498692 /home/user-331/projects/pylang/model/scope.h
+
+1762498692 source:/home/user-331/projects/pylang/model/scripter.cpp
+	"bsdata.h"
+	"calculator.h"
+
+1762498692 source:/home/user-331/projects/pylang/model/section.cpp
+	"bsdata.h"
+	"slice.h"
+	"section.h"
+
+1762499097 source:/home/user-331/projects/pylang/model/calculator.cpp
+	"bsdata.h"
+	"calculator.h"
+	"flagable.h"
+	"io_stream.h"
+	"scope.h"
+	"section.h"
+	"stringbuilder.h"
+	"stringa.h"
 

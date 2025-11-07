@@ -61,7 +61,7 @@ int symboli::getindex() const {
 
 bool isterminal(operationn v) {
 	switch(v) {
-	case Number: case Text: case Identifier: return true;
+	case Number: case Text: case Identifier: case Symbol: return true;
 	case Continue: case Break: return true;
 	default: return false;
 	}
@@ -777,9 +777,9 @@ static int unary() {
 	} else if(isidentifier()) {
 		parse_type();
 		if(last_type!=-1)
-			return ast_add(Identifier, last_type);
+			return ast_add(Symbol, last_type);
 		parse_identifier();
-		auto ids = strings.add(last_string);
+		auto ids = string_id(last_string);
 		auto idf = find_define(ids);
 		if(idf != -1)
 			return define_ast(idf);
@@ -788,7 +788,7 @@ static int unary() {
 			error("Symbol `%1` not exist", string_name(ids));
 			sid = create_symbol(ids, i32, 0, -1, module_sid);
 		}
-		return ast_add(Identifier, sid);
+		return ast_add(Symbol, sid);
 	} else {
 		error("Expected unary expression.");
 		return -1;
@@ -803,7 +803,7 @@ static int postfix() {
 			if(*p != ')')
 				params = parameter_list();
 			skip(")");
-			a = ast_add(Call, a, params);
+			binary(a, Call, params);
 		} else if(match("[")) {
 			auto b = expression();
 			skip("]");
@@ -813,11 +813,8 @@ static int postfix() {
 
 		} else if(match(".")) {
 			parse_identifier();
-			auto ids = strings.add(last_string);
-			auto sid = find_variable(ids);
-			if(sid == -1)
-				sid = create_symbol(ids, i32, 0, -1, module_sid);
-			binary(a, Point, ast_add(Identifier, sid));
+			auto ids = string_id(last_string);
+			binary(a, Point, ast_add(Identifier, ids));
 		} else
 			break;
 	}
@@ -1155,8 +1152,8 @@ static void parse_import() {
 	auto sid = create_module(ids);
 	if(match("as")) {
 		parse_identifier();
-		auto als = strings.add(last_string);
-		create_define(als, ast_add(Identifier, sid));
+		auto als = string_id(last_string);
+		create_define(als, ast_add(Symbol, sid));
 	}
 }
 
@@ -1165,7 +1162,7 @@ static void parse_define() {
 		return;
 	parse_identifier();
 	skip("=");
-	auto ids = strings.add(last_string);
+	auto ids = string_id(last_string);
 	create_define(ids, expression());
 }
 
