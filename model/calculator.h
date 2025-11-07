@@ -8,7 +8,7 @@ enum operationn {
 	Less, LessEqual, Greater, GreaterEqual, Equal, NotEqual,
 	Or, And,
 	Increment, Decrement, AdressOf, Dereference, Scope, Cast, Point,
-	Assign, If, Else, While, Return, Switch, Case, Break, Continue, Default, In,
+	Assign, If, Else, While, Return, Switch, Case, Break, Continue, Default, In, Call,
 	Number, Text, Identifier, List,
 };
 enum symboln {
@@ -80,7 +80,9 @@ int dereference(int type);
 int find_symbol(int ids, int scope, int parent);
 int predefined_symbol_size(int type);
 int reference(int type);
+int string_id(const char* name);
 int symbol_ast(int sid);
+int symbol_run(const char* symbol, const char* classid);
 int symbol_scope(int sid);
 int symbol_size(int sid);
 int symbol_type(int sid);

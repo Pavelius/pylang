@@ -41,3 +41,6 @@ void TestMatch(int x)
 void copy(char* bits, int offset)
  bits[offset] = 0
  bits[offset+1] = 2
+
+int run()
+ TestMatch(2)

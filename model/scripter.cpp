@@ -39,7 +39,7 @@ static void binary_operation(operationn op, evaluei& e1, evaluei& e2) {
 		e1.value = arifmetic(op, e1.value, e2.value * symbol_size(dereference(e1.type)));
 }
 
-static void run_ast(evaluei& e, int v) {
+static void ast_run(evaluei& e, int v) {
 	if(v == -1)
 		return;
 	evaluei r;
@@ -47,26 +47,30 @@ static void run_ast(evaluei& e, int v) {
 	switch(p->op) {
 	case If:
 		r.clear();
-		run_ast(r, p->right);
+		ast_run(r, p->right);
 		if(r.value)
-			run_ast(e, p->left);
+			ast_run(e, p->left);
 		break;
 	case While:
 		while(true) {
 			e.clear();
-			run_ast(r, p->right);
+			ast_run(r, p->right);
 			if(!e.value)
 				break;
 			r.clear();
-			run_ast(r, p->left);
+			ast_run(r, p->left);
 		}
+		break;
+	case Call:
+		ast_run(e, p->right);
+		ast_run(e, p->left);
 		break;
 	case Number:
 		e.type = i32;
 		e.value = p->right;
 		break;
 	case Identifier:
-		run_ast(e, symbol_ast(p->right));
+		ast_run(e, symbol_ast(p->right));
 		break;
 	case Text:
 		e.type = get_string_type();
@@ -74,13 +78,17 @@ static void run_ast(evaluei& e, int v) {
 		break;
 	case Assign:
 		r.clear();
-		run_ast(r, p->right);
-		run_ast(e, p->left);
+		ast_run(r, p->right);
+		ast_run(e, p->left);
+		break;
+	case List:
+		ast_run(e, p->left);
+		ast_run(e, p->right);
 		break;
 	default:
 		r.clear();
-		run_ast(r, p->right);
-		run_ast(e, p->left);
+		ast_run(r, p->right);
+		ast_run(e, p->left);
 		binary_operation(p->op, e, r);
 		break;
 	}
@@ -90,8 +98,20 @@ int const_number(int ast) {
 	if(ast == -1)
 		return 0;
 	evaluei e = {};
-	run_ast(e, ast);
+	ast_run(e, ast);
 	if(e.type != i32)
 		error("Must be constant expression");
+	return e.value;
+}
+
+int symbol_run(const char* symbol, const char* classid) {
+	auto tid = find_symbol(string_id(classid), TypeScope, 0);
+	if(tid == -1)
+		return -1;
+	auto sid = find_symbol(string_id(symbol), 0, tid);
+	if(sid == -1)
+		return -1;
+	evaluei e;
+	ast_run(e, symbol_ast(sid));
 	return e.value;
 }

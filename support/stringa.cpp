@@ -1,7 +1,7 @@
 #include "stringa.h"
 #include "stringbuilder.h"
 
-unsigned stringa::find(const char* v, size_t len) const {
+int stringa::find(const char* v, size_t len) const {
 	if(v && len) {
 		auto pe = end();
 		auto s = *v;
@@ -18,11 +18,11 @@ unsigned stringa::find(const char* v, size_t len) const {
 	return -1;
 }
 
-unsigned stringa::find(const char* v) const {
+int stringa::find(const char* v) const {
 	return find(v, zlen(v));
 }
 
-unsigned stringa::add(const char* v, size_t len) {
+int stringa::add(const char* v, size_t len) {
 	auto result = count;
 	reserve(result + len + 1);
 	memcpy(ptr(result), v, len + 1);
@@ -30,7 +30,7 @@ unsigned stringa::add(const char* v, size_t len) {
 	return result;
 }
 
-unsigned stringa::add(const char* v) {
+int stringa::add(const char* v) {
 	if(!v || v[0] == 0)
 		return 0;
 	auto c = zlen(v);

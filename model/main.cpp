@@ -117,5 +117,6 @@ int main() {
 	if(iserrors())
 		return -1;
 	print_types();
+	// symbol_run("run", "main");
 	return 0;
 }

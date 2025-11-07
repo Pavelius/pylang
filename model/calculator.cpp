@@ -46,7 +46,12 @@ struct pushfile {
 	const char* start_line;
 	const char* url;
 	int ident;
-	pushfile(const char* p1) : pointer(p), start(p_start), start_line(p_start_line), url(p_url), ident(last_ident) { p = p1; p_start = p1; p_start_line = p1; last_ident = 0; }
+	pushfile(const char* p1) : pointer(p), start(p_start), start_line(p_start_line), url(p_url), ident(last_ident) {
+		p = p1;
+		p_start = p1;
+		p_start_line = p1;
+		last_ident = 0;
+	}
 	~pushfile() { p = pointer; p_start = start; p_start_line = start_line; p_url = url; last_ident = ident; }
 };
 
@@ -269,6 +274,12 @@ const char* string_name(int sid) {
 	if(sid == -1)
 		return "";
 	return strings.get(sid);
+}
+
+int string_id(const char* name) {
+	if(!name || name[0]==0)
+		return -1;
+	return strings.add(name);
 }
 
 static void skipws() {
@@ -792,6 +803,7 @@ static int postfix() {
 			if(*p != ')')
 				params = parameter_list();
 			skip(")");
+			a = ast_add(Call, a, params);
 		} else if(match("[")) {
 			auto b = expression();
 			skip("]");
