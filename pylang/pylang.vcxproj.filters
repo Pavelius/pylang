@@ -52,6 +52,9 @@
     <ClCompile Include="..\model\section.cpp">
       <Filter>lang</Filter>
     </ClCompile>
+    <ClCompile Include="..\support\print.cpp">
+      <Filter>support</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\support\array.h">
@@ -90,12 +93,18 @@
     <ClInclude Include="..\model\section.h">
       <Filter>lang</Filter>
     </ClInclude>
+    <ClInclude Include="..\support\print.h">
+      <Filter>support</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\code\test\main.pcn">
       <Filter>code</Filter>
     </None>
     <None Include="..\code\test\rect.pcn">
+      <Filter>code</Filter>
+    </None>
+    <None Include="..\code\test\main1.pcn">
       <Filter>code</Filter>
     </None>
   </ItemGroup>

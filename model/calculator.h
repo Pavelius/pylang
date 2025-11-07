@@ -55,8 +55,10 @@ struct definei {
 	int			ast;
 };
 
-typedef void(*calculator_fnprint)(const char* header, const char* format, const char* format_param, const char* example);
-extern calculator_fnprint calculator_error_proc;
+typedef void(*fnprint_calculator)(const char* header, const char* format, const char* format_param, const char* example);
+typedef void(*fnprint_scripter)(const char* format, const char* format_param);
+extern fnprint_calculator calculator_error_proc;
+extern fnprint_scripter scripter_error_proc;
 
 void calculator_file_parse(const char* url);
 void calculator_parse(const char* code);

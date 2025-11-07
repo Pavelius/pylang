@@ -1,12 +1,45 @@
 #include "bsdata.h"
 #include "calculator.h"
+#include "stringbuilder.h"
 
 struct evaluei {
 	int	type, value;
 	void clear() { type = i32; value = 0; }
 };
+static evaluei operations[32];
+static int operations_top;
+fnprint_scripter scripter_error_proc;
 
 static void error(const char* format, ...) {
+	XVA_FORMAT(format);
+	if(scripter_error_proc)
+		scripter_error_proc(format, format_param);
+}
+
+static void pushv() {
+	if(operations_top < lenghtof(operations) - 1)
+		operations_top++;
+	else
+		error("Operation stack overflov.");
+}
+
+static void popv() {
+	if(operations_top > 0)
+		operations_top--;
+	else
+		error("Operation stack corrupt.");
+}
+
+static evaluei& get(int n) {
+	return operations[operations_top + n];
+}
+
+static evaluei& get() {
+	return operations[operations_top];
+}
+
+static int getv(int n = 0) {
+	return get(n).value;
 }
 
 static int get_string_type() {
@@ -39,57 +72,55 @@ static void binary_operation(operationn op, evaluei& e1, evaluei& e2) {
 		e1.value = arifmetic(op, e1.value, e2.value * symbol_size(dereference(e1.type)));
 }
 
-static void ast_run(evaluei& e, int v) {
+static void ast_run(int v) {
 	if(v == -1)
 		return;
-	evaluei r;
 	auto p = bsdata<asti>::begin() + v;
 	switch(p->op) {
-	case If:
-		r.clear();
-		ast_run(r, p->right);
-		if(r.value)
-			ast_run(e, p->left);
-		break;
-	case While:
-		while(true) {
-			e.clear();
-			ast_run(r, p->right);
-			if(!e.value)
-				break;
-			r.clear();
-			ast_run(r, p->left);
-		}
-		break;
+	//case If:
+	//	ast_run(r, p->right);
+	//	if(r.value)
+	//		ast_run(e, p->left);
+	//	break;
+	//case While:
+	//	while(true) {
+	//		e.clear();
+	//		ast_run(r, p->right);
+	//		if(!e.value)
+	//			break;
+	//		r.clear();
+	//		ast_run(r, p->left);
+	//	}
+	//	break;
 	case Call:
-		ast_run(e, p->right);
-		ast_run(e, p->left);
+		ast_run(p->right);
+		ast_run(p->left);
 		break;
 	case Number:
-		e.type = i32;
-		e.value = p->right;
+		get().value = p->right;
+		get().type = i32;
+		pushv();
 		break;
-	case Identifier:
-		ast_run(e, symbol_ast(p->right));
+	case Symbol:
+		ast_run(symbol_ast(p->right));
 		break;
 	case Text:
-		e.type = get_string_type();
-		e.value = p->right;
+		get().value = p->right;
+		get().type = get_string_type();
+		pushv();
 		break;
 	case Assign:
-		r.clear();
-		ast_run(r, p->right);
-		ast_run(e, p->left);
+		ast_run(p->right);
+		ast_run(p->left);
 		break;
 	case List:
-		ast_run(e, p->left);
-		ast_run(e, p->right);
+		ast_run(p->left);
+		ast_run(p->right);
+		break;
+	case Return:
+		ast_run(p->right);
 		break;
 	default:
-		r.clear();
-		ast_run(r, p->right);
-		ast_run(e, p->left);
-		binary_operation(p->op, e, r);
 		break;
 	}
 }
@@ -97,11 +128,10 @@ static void ast_run(evaluei& e, int v) {
 int const_number(int ast) {
 	if(ast == -1)
 		return 0;
-	evaluei e = {};
-	ast_run(e, ast);
-	if(e.type != i32)
+	ast_run(ast);
+	if(get().type != i32)
 		error("Must be constant expression");
-	return e.value;
+	return get().value;
 }
 
 int symbol_run(const char* symbol, const char* classid) {
@@ -111,7 +141,7 @@ int symbol_run(const char* symbol, const char* classid) {
 	auto sid = find_symbol(string_id(symbol), 0, tid);
 	if(sid == -1)
 		return -1;
-	evaluei e;
-	ast_run(e, symbol_ast(sid));
-	return e.value;
+	ast_run(symbol_ast(sid));
+	popv();
+	return get().value;
 }

@@ -141,6 +141,7 @@
     <ClCompile Include="..\support\array.cpp" />
     <ClCompile Include="..\support\io_stream.cpp" />
     <ClCompile Include="..\support\math.cpp" />
+    <ClCompile Include="..\support\print.cpp" />
     <ClCompile Include="..\support\stringa.cpp" />
     <ClCompile Include="..\support\stringbuilder.cpp" />
   </ItemGroup>
@@ -154,12 +155,14 @@
     <ClInclude Include="..\support\flagable.h" />
     <ClInclude Include="..\support\io_stream.h" />
     <ClInclude Include="..\support\math.h" />
+    <ClInclude Include="..\support\print.h" />
     <ClInclude Include="..\support\slice.h" />
     <ClInclude Include="..\support\stringa.h" />
     <ClInclude Include="..\support\stringbuilder.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\code\test\main.pcn" />
+    <None Include="..\code\test\main1.pcn" />
     <None Include="..\code\test\rect.pcn" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

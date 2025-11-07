@@ -1,0 +1,45 @@
+import rect
+
+int x = 10
+int y = 20
+char* name = "John"
+
+void print(char* format)
+ pass
+
+void StartTask(int x, int y)
+ return rect.x1 + x + 5 * 4
+
+void LoadTask(int y)
+ int a = y + 10
+ int b = a + 15
+ if a<b #Comment
+  a++; a<b; int z = 10; z = z + 5
+ elif a>b
+  a--
+ return a / 2
+
+# This function test nested `if` statements
+void TestIfStatements()
+ if x > 10
+  print("Above ten, ")
+  if x > 20
+   print("and also above 20!")
+  else
+   print("but not above 20.")
+
+void TestMatch(int x)
+ match x
+  case 1
+   print("1")
+  case 2
+   print("2")
+  case 3
+   print("3")
+
+void copy(char* bits, int offset)
+ bits[offset] = 0
+ bits[offset+1] = 2
+
+int run()
+ return 2

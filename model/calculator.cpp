@@ -11,7 +11,7 @@ BSDATAD(asti)
 BSDATAD(definei)
 BSDATAD(symboli)
 
-calculator_fnprint	calculator_error_proc;
+fnprint_calculator	calculator_error_proc;
 static int			function_params;
 static int			last_type;
 static int			last_ident;
@@ -277,7 +277,7 @@ const char* string_name(int sid) {
 }
 
 int string_id(const char* name) {
-	if(!name || name[0]==0)
+	if(!name || name[0] == 0)
 		return -1;
 	return strings.add(name);
 }
@@ -464,16 +464,14 @@ static asti ast_object(int i) {
 static void optimize(operationn& op, int& left, int& right) {
 	if(isterminal(op))
 		return;
-	asti p1 = ast_object(left);
-	asti p2 = ast_object(right);
-	if(p1.op == Number && p2.op == Number) {
-		right = arifmetic(op, p1.right, p2.right);
-		left = -1;
-		op = Number;
-	} else if(p1.op == Nop && p2.op == Number) {
-		right = arifmetic(op, p1.right, -1);
-		left = -1;
-		op = Number;
+	else if(op >= Plus && op <= And) {
+		asti p1 = ast_object(left);
+		asti p2 = ast_object(right);
+		if(p1.op == Number && p2.op == Number) {
+			right = arifmetic(op, p1.right, p2.right);
+			left = -1;
+			op = Number;
+		}
 	}
 }
 
@@ -776,7 +774,7 @@ static int unary() {
 		return ast_add(Number, last_number);
 	} else if(isidentifier()) {
 		parse_type();
-		if(last_type!=-1)
+		if(last_type != -1)
 			return ast_add(Symbol, last_type);
 		parse_identifier();
 		auto ids = string_id(last_string);
