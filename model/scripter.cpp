@@ -1,10 +1,14 @@
 #include "bsdata.h"
 #include "calculator.h"
 #include "stringbuilder.h"
+#include "section.h"
 
 struct evaluei {
-	int	type, value;
-	void clear() { type = i32; value = 0; }
+	int	type;
+	int value;
+	int sid; // Symbol id for rvalue conversion. -1 if no rvalue.
+	int sec; // Section id. -1 for none.
+	void clear() { type = i32; value = 0; sec = -1; sid = -1; }
 };
 static evaluei operations[32];
 static int operations_top;
@@ -65,11 +69,86 @@ static bool isnumber(int type) {
 static void dereference(evaluei* p) {
 }
 
-static void binary_operation(operationn op, evaluei& e1, evaluei& e2) {
+static void binary_operation(operationn op) {
+	evaluei& e1 = get(-2);
+	evaluei& e2 = get(-1);
 	if(isnumber(e1.type) && isnumber(e2.type))
 		e1.value = arifmetic(op, e1.value, e2.value);
 	else if(isnumber(e2.type))
 		e1.value = arifmetic(op, e1.value, e2.value * symbol_size(dereference(e1.type)));
+	popv();
+}
+
+static void push_number(int value) {
+	get().clear();
+	get().value = value;
+	get().type = i32;
+	pushv();
+}
+
+static void push_literal(int ids) {
+	get().clear();
+	get().value = ids;
+	get().type = get_string_type();
+	pushv();
+}
+
+static void push_symbol(int sid) {
+	auto& e = get();
+	e.clear();
+	e.sid = sid;
+	e.value = 0;
+	e.type = reference(symbol_type(sid));
+	e.sec = symbol_section(sid).sid;
+	pushv();
+}
+
+static int get_value(void* data, int size) {
+	switch(size) {
+	case 1: return *((char*)data);
+	case 2: return *((short*)data);
+	default: return *((int*)data);
+	}
+}
+
+static int set_value(void* data, int size, int value) {
+	switch(size) {
+	case 1: *((char*)data) = (char)value; break;
+	case 2: *((short*)data) = (short)value; break;
+	default: *((int*)data) = value; break;
+	}
+}
+
+static int get_value(int sid, int offset, int type) {
+	if(sid == -1)
+		return 0;
+	auto p = bsdata<sectioni>::begin() + sid;
+	if(!p->data)
+		return 0;
+	auto pb = (char*)p->data + offset;
+	auto size = symbol_size(type);
+	return get_value(pb, size);
+}
+
+static void set_value(int sid, int offset, int type, int value) {
+	if(sid == -1)
+		return;
+	auto p = bsdata<sectioni>::begin() + sid;
+	if(!p->data)
+		return;
+	auto pb = (char*)p->data + offset;
+	auto size = symbol_size(type);
+	set_value(pb, size, value);
+}
+
+static void rvalue() {
+	auto& e = get(-1);
+	if(e.sid==-1)
+		return;
+	e.type = dereference(e.type);
+	e.value = get_value(e.sec, e.value, e.type);
+	e.sid = -1;
+	e.sec = -1;
 }
 
 static void ast_run(int v) {
@@ -97,17 +176,13 @@ static void ast_run(int v) {
 		ast_run(p->left);
 		break;
 	case Number:
-		get().value = p->right;
-		get().type = i32;
-		pushv();
-		break;
-	case Symbol:
-		ast_run(symbol_ast(p->right));
+		push_number(p->right);
 		break;
 	case Text:
-		get().value = p->right;
-		get().type = get_string_type();
-		pushv();
+		push_literal(p->right);
+		break;
+	case Symbol:
+		push_symbol(p->right);
 		break;
 	case Assign:
 		ast_run(p->right);
@@ -119,6 +194,13 @@ static void ast_run(int v) {
 		break;
 	case Return:
 		ast_run(p->right);
+		break;
+	case Plus: case Minus:
+		ast_run(p->right);
+		rvalue();
+		ast_run(p->left);
+		rvalue();
+		binary_operation(p->op);
 		break;
 	default:
 		break;

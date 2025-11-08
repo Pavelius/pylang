@@ -24,6 +24,7 @@ struct offseti {
 	int			sid; // section identifier, -1 for not instaced identifier
 	int			offset; // offset from section base
 	int			size; // symbol size
+	void		clear() { sid = -1; offset = 0; size = 0; }
 	bool		needalloc() const { return sid != -1; }
 	void*		ptr() const { return 0; }
 };

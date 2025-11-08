@@ -1,2 +1,4 @@
+static int x = 10
+
 int run()
- return 2
+ return x + 2 + 10

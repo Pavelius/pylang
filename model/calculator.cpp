@@ -267,6 +267,7 @@ static void symbol_alloc(int sid, int data_sid) {
 		auto& s = bsdata<sectioni>::get(data_sid);
 		e.instance.offset = s.size;
 		s.size += e.instance.size;
+		s.reserve(0);
 	}
 }
 
@@ -1131,10 +1132,10 @@ static void parse_declaration() {
 			break;
 		} else {
 			parse_array_declaration(sid);
-			if(!symbol(sid, Static))
-				instance_symbol(sid);
 			if(match("="))
 				symbol_ast(sid, initialization_list());
+			//if(!symbol(sid, Static))
+			instance_symbol(sid);
 			if(match(","))
 				continue;
 			break;
