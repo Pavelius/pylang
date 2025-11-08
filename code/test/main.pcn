@@ -1,4 +1,5 @@
 static int x = 10
+static int y = 15
 
 int run()
- return x + 2 + 10
+ return (x + 10) / 2

@@ -9,6 +9,8 @@ struct evaluei {
 	int sid; // Symbol id for rvalue conversion. -1 if no rvalue.
 	int sec; // Section id. -1 for none.
 	void clear() { type = i32; value = 0; sec = -1; sid = -1; }
+	bool islvalue() const { return sid != -1; }
+	bool isrvalue() const { return sid == -1; }
 };
 static evaluei operations[32];
 static int operations_top;
@@ -103,52 +105,28 @@ static void push_symbol(int sid) {
 	pushv();
 }
 
-static int get_value(void* data, int size) {
-	switch(size) {
-	case 1: return *((char*)data);
-	case 2: return *((short*)data);
-	default: return *((int*)data);
-	}
-}
-
-static int set_value(void* data, int size, int value) {
-	switch(size) {
-	case 1: *((char*)data) = (char)value; break;
-	case 2: *((short*)data) = (short)value; break;
-	default: *((int*)data) = value; break;
-	}
-}
-
 static int get_value(int sid, int offset, int type) {
 	if(sid == -1)
 		return 0;
 	auto p = bsdata<sectioni>::begin() + sid;
-	if(!p->data)
-		return 0;
-	auto pb = (char*)p->data + offset;
-	auto size = symbol_size(type);
-	return get_value(pb, size);
+	return p->getvalue(offset, symbol_size(type));
 }
 
 static void set_value(int sid, int offset, int type, int value) {
 	if(sid == -1)
 		return;
 	auto p = bsdata<sectioni>::begin() + sid;
-	if(!p->data)
-		return;
-	auto pb = (char*)p->data + offset;
-	auto size = symbol_size(type);
-	set_value(pb, size, value);
+	p->setvalue(offset, symbol_size(type), value);
 }
 
 static void rvalue() {
 	auto& e = get(-1);
-	if(e.sid==-1)
-		return;
-	e.type = dereference(e.type);
-	e.value = get_value(e.sec, e.value, e.type);
-	e.sid = -1;
-	e.sec = -1;
+	if(!e.isrvalue()) {
+		e.type = dereference(e.type);
+		e.value = get_value(e.sec, e.value, e.type);
+		e.sid = -1;
+		e.sec = -1;
+	}
 }
 
 static void ast_run(int v) {
@@ -211,6 +189,7 @@ int const_number(int ast) {
 	if(ast == -1)
 		return 0;
 	ast_run(ast);
+	popv();
 	if(get().type != i32)
 		error("Must be constant expression");
 	return get().value;
@@ -224,6 +203,5 @@ int symbol_run(const char* symbol, const char* classid) {
 	if(sid == -1)
 		return -1;
 	ast_run(symbol_ast(sid));
-	popv();
 	return get().value;
 }

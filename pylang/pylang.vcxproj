@@ -162,7 +162,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\code\test\main.pcn" />
-    <None Include="..\code\test\main1.pcn" />
+    <None Include="..\code\test\rich_test.pcn" />
     <None Include="..\code\test\rect.pcn" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

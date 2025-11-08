@@ -28,6 +28,30 @@ void sectioni::add(const void* source, size_t size) {
 	this->size += size;
 }
 
+void sectioni::setvalue(int offset, int size, int value) const {
+	if(!data)
+		return;
+	auto p = (char*)data + offset;
+	switch(size) {
+	case 1: *((char*)p) = (char)value; break;
+	case 2: *((short*)p) = (short)value; break;
+	case 4: *((int*)p) = value; break;
+	default: break;
+	}
+}
+
+int sectioni::getvalue(int offset, int size) const {
+	if(!data)
+		return 0;
+	auto p = (char*)data + offset;
+	switch(size) {
+	case 1: return *((char*)data);
+	case 2: return *((short*)data);
+	case 4: return *((int*)data);
+	default: return 0;
+	}
+}
+
 void sectioni::reserve(size_t size) {
 	auto total = this->size + size;
 	if(isvirtual())
@@ -44,8 +68,14 @@ void sectioni::reserve(size_t size) {
 		data = malloc(size_maximum);
 }
 
-sectioni& section(sectionn v) {
-	return bsdata<sectioni>::elements[v];
+char* sectioni::ptr(int offset) const {
+	if(data)
+		return (char*)data + offset;
+	return 0;
+}
+
+sectioni& section(int sec) {
+	return bsdata<sectioni>::elements[sec];
 }
 
 void initialize_sections() {

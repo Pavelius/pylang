@@ -79,32 +79,15 @@ static void errorv(const char* format, const char* format_param) {
 	println();
 }
 
-static void errorv(const char* url, const char* format, const char* format_param, const char* example) {
-	if(last_url_error != url) {
-		printcnf("Error when parsing `"); printcnf(url); printcnf("`");
-		println();
-		last_url_error = url;
-	}
-	printcnf(" "); printv(format, format_param);
-	if(example) {
-		printcnf(" in `"); printcnf(example); printcnf("`");
-	}
-	println();
-}
-
-static void initialize_parser() {
-	calculator_error_proc = errorv;
-}
-
 int main() {
 	print_proc = printcnf_proc;
 	scripter_error_proc = errorv;
-	initialize_parser();
 	initialize_sections();
 	project_compile("code/test");
 	if(iserrors())
 		return -1;
 	print_types();
 	auto test_value = symbol_run("run", "main");
+	println("Result is %1i", test_value);
 	return 0;
 }

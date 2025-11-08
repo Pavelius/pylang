@@ -104,7 +104,7 @@
     <None Include="..\code\test\rect.pcn">
       <Filter>code</Filter>
     </None>
-    <None Include="..\code\test\main1.pcn">
+    <None Include="..\code\test\rich_test.pcn">
       <Filter>code</Filter>
     </None>
   </ItemGroup>

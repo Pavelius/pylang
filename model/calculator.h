@@ -15,7 +15,7 @@ enum symboln {
 	Void, Auto, i8, u8, i16, u16, i32, u32, i64, u64,
 };
 enum symbolfn {
-	Static, Public, Predefined, UseRead, UseWrite, Complete, Function,
+	Static, Private, Predefined, UseRead, UseWrite, Complete, Function,
 };
 enum scopen {
 	TypeScope = -2, PointerScope = -3,
@@ -56,9 +56,7 @@ struct definei {
 	int			ast;
 };
 
-typedef void(*fnprint_calculator)(const char* header, const char* format, const char* format_param, const char* example);
 typedef void(*fnprint_scripter)(const char* format, const char* format_param);
-extern fnprint_calculator calculator_error_proc;
 extern fnprint_scripter scripter_error_proc;
 
 void calculator_file_parse(const char* url);

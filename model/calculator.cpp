@@ -2,6 +2,7 @@
 #include "calculator.h"
 #include "flagable.h"
 #include "io_stream.h"
+#include "print.h"
 #include "scope.h"
 #include "section.h"
 #include "stringbuilder.h"
@@ -11,25 +12,29 @@ BSDATAD(asti)
 BSDATAD(definei)
 BSDATAD(symboli)
 
-fnprint_calculator	calculator_error_proc;
-static int			function_params;
-static int			last_type;
-static int			last_ident;
-static unsigned		last_flags;
-static long			last_number;
-static char			last_string[256 * 256];
-static const char*	p;
-static const char*	p_start;
-static const char*	p_url;
-static const char*	p_start_line;
-static stringa		strings;
-static int			errors_count;
+static int function_params;
+static int last_type;
+static int last_ident;
+static unsigned last_flags;
+static long last_number;
 
-static int			module_sid;
-static const char*	project_url;
-const char*			library_url;
+static const char* project_url;
+const char*	library_url;
 
-static int			size_of_pointer = 4;
+static const char* p;
+static const char* p_start;
+static const char* p_start_line;
+static const char* p_url;
+static const char* last_url_error;
+static char	last_string[256 * 256];
+
+static stringa strings;
+
+static int errors_count;
+
+static int module_sid;
+
+static int size_of_pointer = 4;
 
 static int parse_expression();
 static int unary();
@@ -55,8 +60,44 @@ struct pushfile {
 	~pushfile() { p = pointer; p_start = start; p_start_line = start_line; p_url = url; last_ident = ident; }
 };
 
-int symboli::getindex() const {
-	return this - bsdata<symboli>::begin();
+static void errorv(const char* url, const char* format, const char* format_param, const char* example) {
+	if(last_url_error != url) {
+		printcnf("Error when parsing `"); printcnf(url); printcnf("`");
+		println();
+		last_url_error = url;
+	}
+	printcnf(" "); printv(format, format_param);
+	if(example) {
+		printcnf(" in `"); printcnf(example); printcnf("`");
+	}
+	println();
+}
+
+static const char* create_example() {
+	static char temp[260]; stringbuilder sb(temp); sb.clear();
+	if(!p)
+		return 0;
+	auto p1 = p;
+	// Find line begin
+	while(p1 > p_start) {
+		if(p1[-1] == 10 || p1[-1] == 13 || p1[-1] == 9)
+			break;
+		p1--;
+	}
+	// Skip until line end
+	while(*p1 && *p1 != 10 && *p1 != 13) {
+		sb.add(*p1);
+		p1++;
+		if(sb.isempthy())
+			break;
+	}
+	return temp;
+}
+
+static void error(const char* format, ...) {
+	errors_count++;
+	XVA_FORMAT(format);
+	errorv(p_url, format, format_param, create_example());
 }
 
 bool isterminal(operationn v) {
@@ -100,39 +141,14 @@ int predefined_symbol_size(int type) {
 	}
 }
 
-static const char* create_example() {
-	static char temp[260]; stringbuilder sb(temp); sb.clear();
-	if(!p)
-		return 0;
-	auto p1 = p;
-	// Find line begin
-	while(p1 > p_start) {
-		if(p1[-1] == 10 || p1[-1] == 13 || p1[-1] == 9)
-			break;
-		p1--;
-	}
-	// Skip until line end
-	while(*p1 && *p1 != 10 && *p1 != 13) {
-		sb.add(*p1);
-		p1++;
-		if(sb.isempthy())
-			break;
-	}
-	return temp;
-}
-
-static void error(const char* format, ...) {
-	errors_count++;
-	if(!calculator_error_proc)
-		return;
-	XVA_FORMAT(format)
-		calculator_error_proc(p_url, format, format_param, create_example());
-}
-
 int define_ast(int sid) {
 	if(sid == -1)
 		return -1;
 	return bsdata<definei>::get(sid).ast;
+}
+
+int symboli::getindex() const {
+	return this - bsdata<symboli>::begin();
 }
 
 bool symbol(int sid, symbolfn v) {
@@ -246,28 +262,34 @@ static int getscope() {
 	return 0;
 }
 
-static void symbol_alloc(int sid, int data_sid) {
-	if(sid == -1 || data_sid == -1)
+static void create_instance(sectioni& es, int type, int offset, int ast) {
+	auto& e = bsdata<symboli>::get(type);
+	es.setvalue(offset, symbol_size(type), const_number(ast));
+}
+
+static void instance_symbol(int sid, int section_id) {
+	if(sid == -1 || section_id == -1)
 		return;
 	auto& e = bsdata<symboli>::get(sid);
 	if(e.instance.sid != -1)
 		return;
-	e.instance.sid = data_sid;
+	e.instance.sid = section_id;
 	e.instance.size = calculate_symbol_size(sid);
-	if(data_sid == LocalSection) {
+	if(section_id == LocalSection) {
 		if(current_scope) {
 			e.instance.offset = current_scope->getsize();
 			current_scope->size += e.instance.size;
 		}
-	} else if(data_sid == ModuleSection) {
+	} else if(section_id == ModuleSection) {
 		auto& et = bsdata<symboli>::get(module_sid);
 		e.instance.offset = et.instance.size;
 		et.instance.size += e.instance.size;
 	} else {
-		auto& s = bsdata<sectioni>::get(data_sid);
+		auto& s = bsdata<sectioni>::get(section_id);
 		e.instance.offset = s.size;
 		s.size += e.instance.size;
 		s.reserve(0);
+		create_instance(s, e.type, e.instance.offset, e.value);
 	}
 }
 
@@ -365,7 +387,7 @@ static bool next_statement() {
 }
 
 static bool isidentifier() {
-	return ischa(*p);
+	return *p == '_' || ischa(*p);
 }
 
 int find_symbol(int ids, int scope, int parent) {
@@ -525,8 +547,6 @@ static void parse_flags() {
 	while(*p) {
 		if(word("static"))
 			last_flags |= FG(Static);
-		else if(word("public"))
-			last_flags |= FG(Public);
 		else
 			break;
 	}
@@ -617,7 +637,7 @@ static void instance_symbol(int sid) {
 			section = DataSection;
 	} else if(current_scope)
 		section = LocalSection;
-	symbol_alloc(sid, section);
+	instance_symbol(sid, section);
 }
 
 static int create_module(int ids) {
@@ -970,12 +990,6 @@ static void parse_array_declaration(int sid) {
 	}
 }
 
-static void symbol_instance(int sid, sectionn secid) {
-	auto& e = bsdata<symboli>::get(sid);
-	auto& s = section(secid);
-	e.instance.offset = s.ptr();
-}
-
 static int parse_local_declaration() {
 	if(parse_member_declaration()) {
 		auto type = last_type;
@@ -984,10 +998,9 @@ static int parse_local_declaration() {
 		auto ids = strings.add(last_string);
 		auto sid = create_symbol(ids, type, flags, -1, module_sid);
 		parse_array_declaration(sid);
-		instance_symbol(sid);
 		if(match("="))
 			symbol_ast(sid, initialization_list());
-		symbol_instance(sid, LocalSection);
+		instance_symbol(sid);
 		return ast_add(Assign, sid, symbol_ast(sid));
 	} else
 		return assigment();
@@ -1114,15 +1127,24 @@ static void parse_parameters() {
 	skip(")");
 }
 
+static void parse_private(unsigned& f) {
+	if(*p == '_') {
+		f |= FG(Private);
+		p++;
+	}
+}
+
 static void parse_declaration() {
 	if(!parse_member_declaration())
 		return;
 	auto type = last_type;
 	auto flags = last_flags;
 	while(isidentifier()) {
+		auto member_flags = flags;
+		parse_private(member_flags);
 		parse_identifier();
 		auto ids = strings.add(last_string);
-		auto sid = create_symbol(ids, type, flags, -1, module_sid, "Module member `%1` is already defined");
+		auto sid = create_symbol(ids, type, member_flags, -1, module_sid, "Module member `%1` is already defined");
 		if(match("(")) {
 			symbol_set(sid, Function);
 			pushparam push(sid);
@@ -1134,7 +1156,6 @@ static void parse_declaration() {
 			parse_array_declaration(sid);
 			if(match("="))
 				symbol_ast(sid, initialization_list());
-			//if(!symbol(sid, Static))
 			instance_symbol(sid);
 			if(match(","))
 				continue;
@@ -1192,6 +1213,7 @@ static void add_symbol(symboln v, const char* id) {
 	if(find_symbol(ids, TypeScope, 0) != -1)
 		return;
 	create_symbol(ids, -1, FG(Predefined), TypeScope, 0);
+	bsdata<symboli>::get(v).instance.size = predefined_symbol_size(v);
 }
 
 static void add_symbol(sectionn v, const char* id) {
