@@ -45,9 +45,9 @@ int sectioni::getvalue(int offset, int size) const {
 		return 0;
 	auto p = (char*)data + offset;
 	switch(size) {
-	case 1: return *((char*)data);
-	case 2: return *((short*)data);
-	case 4: return *((int*)data);
+	case 1: return *((char*)p);
+	case 2: return *((short*)p);
+	case 4: return *((int*)p);
 	default: return 0;
 	}
 }

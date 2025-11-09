@@ -21,12 +21,10 @@ enum scopen {
 	TypeScope = -2, PointerScope = -3,
 };
 struct offseti {
-	int			sid; // section identifier, -1 for not instaced identifier
-	int			offset; // offset from section base
-	int			size; // symbol size
-	void		clear() { sid = -1; offset = 0; size = 0; }
+	int			sid; // Section identifier, -1 for not instaced identifier
+	int			offset; // Offset from section base
+	void		clear() { sid = -1; offset = 0; }
 	bool		needalloc() const { return sid != -1; }
-	void*		ptr() const { return 0; }
 };
 struct symboli {
 	int			ids; // string id, use string_name() to get text
@@ -37,6 +35,7 @@ struct symboli {
 	int			count; // 0 - default, 1+ for array
 	unsigned	flags; // Some flags
 	int			frame; // symbol stack frame
+	int			size; // Symbol size. Can be zero.
 	offseti		instance; // symbol instance in memory
 	int			getindex() const;
 	bool		is(symbolfn v) const { return (flags & (1 << v)) != 0; }
@@ -79,7 +78,6 @@ int create_symbol(int id, int type, unsigned flags, int scope, int parent);
 int define_ast(int sid);
 int dereference(int type);
 int find_symbol(int ids, int scope, int parent);
-int predefined_symbol_size(int type);
 int reference(int type);
 int string_id(const char* name);
 int symbol_ast(int sid);

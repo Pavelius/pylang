@@ -47,7 +47,7 @@ static void print_types() {
 		if(e.ispredefined() || e.type == -1 || e.ispointer() || !e.istype())
 			continue;
 		auto sid = &e - bsdata<symboli>::begin();
-		println("Module %1 (size %2i)", string_name(e.ids), e.instance.size);
+		println("Module %1 (size %2i)", string_name(e.ids), e.size);
 		for(auto& m : bsdata<symboli>()) {
 			if(m.ispredefined() || m.type == -1 || m.parent != sid)
 				continue;
@@ -64,7 +64,7 @@ static void print_symbols() {
 		auto pt = bsdata<symboli>::begin() + e.type;
 		auto sid = e.getindex();
 		print("%2 %1", string_name(e.ids), string_name(pt->ids));
-		auto size = e.instance.size;
+		auto size = e.size;
 		if(size)
 			print(" size(%1i)", size);
 		auto frame = e.frame;

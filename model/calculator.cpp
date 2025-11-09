@@ -132,15 +132,6 @@ bool iserrors() {
 	return errors_count > 0;
 }
 
-int predefined_symbol_size(int type) {
-	switch(type) {
-	case i8: case u8: return 1;
-	case i16: case u16: return 2;
-	case i32: case u32: return 4;
-	default: return 0;
-	}
-}
-
 int define_ast(int sid) {
 	if(sid == -1)
 		return -1;
@@ -194,22 +185,7 @@ int symbol_type(int sid) {
 int symbol_size(int sid) {
 	if(sid == -1)
 		return 0;
-	return bsdata<symboli>::get(sid).instance.size;
-}
-
-static int calculate_symbol_size(int sid) {
-	auto type = symbol_type(sid);
-	if(symbol_scope(type) == PointerScope)
-		return size_of_pointer;
-	auto result = predefined_symbol_size(type);
-	if(!result) {
-		// Calculate each member size
-		for(auto& e : bsdata<symboli>()) {
-			if(e.parent == sid && e.scope == 0 && !e.is(Static))
-				result += e.instance.size;
-		}
-	}
-	return result;
+	return bsdata<symboli>::get(sid).size;
 }
 
 void symbol_frame(int sid, int value) {
@@ -274,21 +250,20 @@ static void instance_symbol(int sid, int section_id) {
 	if(e.instance.sid != -1)
 		return;
 	e.instance.sid = section_id;
-	e.instance.size = calculate_symbol_size(sid);
 	if(section_id == LocalSection) {
 		if(current_scope) {
 			e.instance.offset = current_scope->getsize();
-			current_scope->size += e.instance.size;
+			current_scope->size += e.size;
 		}
 	} else if(section_id == ModuleSection) {
-		auto& et = bsdata<symboli>::get(module_sid);
-		e.instance.offset = et.instance.size;
-		et.instance.size += e.instance.size;
+		auto& module = bsdata<symboli>::get(module_sid);
+		e.instance.offset = module.size;
+		module.size += e.size;
 	} else {
 		auto& s = bsdata<sectioni>::get(section_id);
 		e.instance.offset = s.size;
-		s.size += e.instance.size;
-		s.reserve(0);
+		s.reserve(e.size);
+		s.size += e.size;
 		create_instance(s, e.type, e.instance.offset, e.value);
 	}
 }
@@ -588,9 +563,13 @@ int create_symbol(int id, int type, unsigned flags, int scope, int parent) {
 	p->flags = flags;
 	p->value = -1;
 	p->frame = 0;
+	p->count = 0;
 	p->instance.sid = -1;
 	p->instance.offset = 0;
-	p->instance.size = 0;
+	if(p->scope == PointerScope)
+		p->size = size_of_pointer;
+	else
+		p->size = symbol_size(p->type);
 	return p->getindex();
 }
 
@@ -1208,12 +1187,12 @@ static void parse_module() {
 	}
 }
 
-static void add_symbol(symboln v, const char* id) {
+static void add_symbol(symboln v, const char* id, int size) {
 	auto ids = strings.add(id);
 	if(find_symbol(ids, TypeScope, 0) != -1)
 		return;
 	create_symbol(ids, -1, FG(Predefined), TypeScope, 0);
-	bsdata<symboli>::get(v).instance.size = predefined_symbol_size(v);
+	bsdata<symboli>::get(v).size = size;
 }
 
 static void add_symbol(sectionn v, const char* id) {
@@ -1224,16 +1203,16 @@ static void add_symbol(sectionn v, const char* id) {
 }
 
 static void symbol_initialize() {
-	add_symbol(Void, "void");
-	add_symbol(Auto, "auto");
-	add_symbol(i8, "char");
-	add_symbol(u8, "uchar");
-	add_symbol(i16, "short");
-	add_symbol(u16, "ushort");
-	add_symbol(i32, "int");
-	add_symbol(u32, "uint");
-	add_symbol(i64, "long");
-	add_symbol(u64, "ulong");
+	add_symbol(Void, "void", 0);
+	add_symbol(Auto, "auto", 0);
+	add_symbol(i8, "char", 1);
+	add_symbol(u8, "uchar", 1);
+	add_symbol(i16, "short", 2);
+	add_symbol(u16, "ushort", 2);
+	add_symbol(i32, "int", 4);
+	add_symbol(u32, "uint", 4);
+	add_symbol(i64, "long", 8);
+	add_symbol(u64, "ulong", 8);
 	add_symbol(ModuleSection, ".module");
 	add_symbol(LocalSection, ".local");
 	add_symbol(DataSection, ".data");

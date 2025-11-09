@@ -76,8 +76,6 @@ static void binary_operation(operationn op) {
 	evaluei& e2 = get(-1);
 	if(isnumber(e1.type) && isnumber(e2.type))
 		e1.value = arifmetic(op, e1.value, e2.value);
-	else if(isnumber(e2.type))
-		e1.value = arifmetic(op, e1.value, e2.value * symbol_size(dereference(e1.type)));
 	popv();
 }
 
@@ -99,7 +97,7 @@ static void push_symbol(int sid) {
 	auto& e = get();
 	e.clear();
 	e.sid = sid;
-	e.value = 0;
+	e.value = symbol_section(sid).offset;
 	e.type = reference(symbol_type(sid));
 	e.sec = symbol_section(sid).sid;
 	pushv();
@@ -173,10 +171,10 @@ static void ast_run(int v) {
 	case Return:
 		ast_run(p->right);
 		break;
-	case Plus: case Minus:
-		ast_run(p->right);
-		rvalue();
+	case Plus: case Minus: case Div: case Mul: case DivRest:
 		ast_run(p->left);
+		rvalue();
+		ast_run(p->right);
 		rvalue();
 		binary_operation(p->op);
 		break;
@@ -203,5 +201,5 @@ int symbol_run(const char* symbol, const char* classid) {
 	if(sid == -1)
 		return -1;
 	ast_run(symbol_ast(sid));
-	return get().value;
+	return get(-1).value;
 }
