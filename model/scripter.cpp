@@ -14,7 +14,16 @@ struct evaluei {
 };
 static evaluei operations[32];
 static int operations_top;
+static char system_stack[256 * 256];
+static int stack_top;
+static bool need_return;
 fnprint_scripter scripter_error_proc;
+
+struct pushreturn {
+	bool value;
+	pushreturn(bool n) : value(need_return) { need_return = n; }
+	~pushreturn() { need_return = value; }
+};
 
 static void error(const char* format, ...) {
 	XVA_FORMAT(format);
@@ -76,6 +85,12 @@ static void binary_operation(operationn op) {
 	popv();
 }
 
+static void unary_operation(operationn op) {
+	evaluei& e1 = get(-1);
+	if(isnumber(e1.type))
+		e1.value = arifmetic(op, e1.value, -1);
+}
+
 static void push_number(int value) {
 	get().clear();
 	get().value = value;
@@ -127,6 +142,19 @@ static void assignment(evaluei& e1, evaluei& e2) {
 	e1 = e2;
 }
 
+static void scope(evaluei& e1, evaluei& e2) {
+	e1.value += e2.value * symbol_size(dereference(e1.type));
+}
+
+static void cast(int type, evaluei& e) {
+	if(isnumber(type) && isnumber(e.type))
+		e.type = type;
+	else if(type == Bool && isnumber(e.type)) {
+		e.type = type;
+		e.value = e.value ? 1 : 0;
+	}
+}
+
 static void ast_run(int v) {
 	if(v == -1)
 		return;
@@ -136,6 +164,7 @@ static void ast_run(int v) {
 		ast_run(p->right);
 		rvalue();
 		popv();
+		cast(Bool, get());
 		if(get().value)
 			ast_run(p->left);
 		break;
@@ -162,6 +191,14 @@ static void ast_run(int v) {
 	case Symbol:
 		push_symbol(p->right);
 		break;
+	case Scope:
+		ast_run(p->left);
+		rvalue();
+		ast_run(p->right);
+		lvalue();
+		scope(get(-2), get(-1));
+		popv();
+		break;
 	case Assign:
 		ast_run(p->left);
 		lvalue();
@@ -173,11 +210,14 @@ static void ast_run(int v) {
 	case List:
 		ast_run(p->left);
 		popv();
+		if(need_return)
+			break;
 		ast_run(p->right);
 		break;
 	case Return:
 		ast_run(p->right);
 		rvalue();
+		need_return = true;
 		break;
 	case Plus: case Minus: case Div: case Mul: case DivRest:
 	case BinaryOr: case BinaryAnd: case BinaryXor:
@@ -188,7 +228,10 @@ static void ast_run(int v) {
 		rvalue();
 		binary_operation(p->op);
 		break;
-	case Neg: case Not:
+	case Neg:
+		unary_operation(p->op);
+		break;
+	case Not:
 		break;
 	default:
 		break;
@@ -212,6 +255,8 @@ int symbol_run(const char* symbol, const char* classid) {
 	auto sid = find_symbol(string_id(symbol), 0, tid);
 	if(sid == -1)
 		return -1;
+	stack_top = lenghtof(system_stack) - 4;
+	pushreturn push_return(false);
 	ast_run(symbol_ast(sid));
 	return get(-1).value;
 }

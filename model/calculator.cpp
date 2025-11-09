@@ -1214,6 +1214,7 @@ static void symbol_initialize() {
 	add_symbol(u32, "uint", 4);
 	add_symbol(i64, "long", 8);
 	add_symbol(u64, "ulong", 8);
+	add_symbol(Bool, "bool", 4);
 	add_symbol(ModuleSection, ".module");
 	add_symbol(LocalSection, ".local");
 	add_symbol(DataSection, ".data");
