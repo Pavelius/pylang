@@ -68,9 +68,6 @@ static bool isnumber(int type) {
 	}
 }
 
-static void dereference(evaluei* p) {
-}
-
 static void binary_operation(operationn op) {
 	evaluei& e1 = get(-2);
 	evaluei& e2 = get(-1);
@@ -127,26 +124,31 @@ static void rvalue() {
 	}
 }
 
+static void assignment(evaluei& e1, evaluei& e2) {
+}
+
 static void ast_run(int v) {
 	if(v == -1)
 		return;
 	auto p = bsdata<asti>::begin() + v;
 	switch(p->op) {
-	//case If:
-	//	ast_run(r, p->right);
-	//	if(r.value)
-	//		ast_run(e, p->left);
-	//	break;
-	//case While:
-	//	while(true) {
-	//		e.clear();
-	//		ast_run(r, p->right);
-	//		if(!e.value)
-	//			break;
-	//		r.clear();
-	//		ast_run(r, p->left);
-	//	}
-	//	break;
+	case If:
+		ast_run(p->right);
+		rvalue();
+		popv();
+		if(get().value)
+			ast_run(p->left);
+		break;
+	case While:
+		while(true) {
+			ast_run(p->right);
+			rvalue();
+			popv();
+			if(!get().value)
+				break;
+			ast_run(p->left);
+		}
+		break;
 	case Call:
 		ast_run(p->right);
 		ast_run(p->left);
@@ -163,6 +165,10 @@ static void ast_run(int v) {
 	case Assign:
 		ast_run(p->right);
 		ast_run(p->left);
+		rvalue();
+		assignment(get(-2), get(-1));
+		popv();
+		popv();
 		break;
 	case List:
 		ast_run(p->left);
@@ -172,11 +178,15 @@ static void ast_run(int v) {
 		ast_run(p->right);
 		break;
 	case Plus: case Minus: case Div: case Mul: case DivRest:
+	case BinaryOr: case BinaryAnd: case BinaryXor:
+	case ShiftLeft: case ShiftRight:
 		ast_run(p->left);
 		rvalue();
 		ast_run(p->right);
 		rvalue();
 		binary_operation(p->op);
+		break;
+	case Neg: case Not:
 		break;
 	default:
 		break;
