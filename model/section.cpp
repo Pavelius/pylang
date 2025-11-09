@@ -28,10 +28,13 @@ void sectioni::add(const void* source, size_t size) {
 	this->size += size;
 }
 
-void sectioni::setvalue(int offset, int size, int value) const {
-	if(!data)
+void set_value(int sec, int offset, int size, int value) {
+	if(sec == -1)
 		return;
-	auto p = (char*)data + offset;
+	auto& e = bsdata<sectioni>::get(sec);
+	if(!e.data)
+		return;
+	auto p = (char*)e.data + offset;
 	switch(size) {
 	case 1: *((char*)p) = (char)value; break;
 	case 2: *((short*)p) = (short)value; break;
@@ -40,10 +43,13 @@ void sectioni::setvalue(int offset, int size, int value) const {
 	}
 }
 
-int sectioni::getvalue(int offset, int size) const {
-	if(!data)
+int get_value(int sec, int offset, int size) {
+	if(sec == -1)
 		return 0;
-	auto p = (char*)data + offset;
+	auto& e = bsdata<sectioni>::get(sec);
+	if(!e.data)
+		return 0;
+	auto p = (char*)e.data + offset;
 	switch(size) {
 	case 1: return *((char*)p);
 	case 2: return *((short*)p);

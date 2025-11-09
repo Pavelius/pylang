@@ -100,31 +100,31 @@ static void push_symbol(int sid) {
 	pushv();
 }
 
-static int get_value(int sid, int offset, int type) {
-	if(sid == -1)
-		return 0;
-	auto p = bsdata<sectioni>::begin() + sid;
-	return p->getvalue(offset, symbol_size(type));
-}
-
-static void set_value(int sid, int offset, int type, int value) {
-	if(sid == -1)
-		return;
-	auto p = bsdata<sectioni>::begin() + sid;
-	p->setvalue(offset, symbol_size(type), value);
-}
-
 static void rvalue() {
 	auto& e = get(-1);
+	if(e.islvalue())
+		symbol(e.sid, UseRead);
 	if(!e.isrvalue()) {
 		e.type = dereference(e.type);
-		e.value = get_value(e.sec, e.value, e.type);
+		e.value = get_value(e.sec, e.value, symbol_size(e.type));
 		e.sid = -1;
 		e.sec = -1;
 	}
 }
 
+static void lvalue() {
+	auto& e = get(-1);
+	if(!e.islvalue())
+		error("Need l-value");
+	else {
+		symbol(e.sid, UseRead);
+		symbol(e.sid, UseWrite);
+	}
+}
+
 static void assignment(evaluei& e1, evaluei& e2) {
+	set_value(e1.sec, e1.value, symbol_size(e1.sid), e2.value);
+	e1 = e2;
 }
 
 static void ast_run(int v) {
@@ -163,19 +163,21 @@ static void ast_run(int v) {
 		push_symbol(p->right);
 		break;
 	case Assign:
-		ast_run(p->right);
 		ast_run(p->left);
+		lvalue();
+		ast_run(p->right);
 		rvalue();
 		assignment(get(-2), get(-1));
-		popv();
 		popv();
 		break;
 	case List:
 		ast_run(p->left);
+		popv();
 		ast_run(p->right);
 		break;
 	case Return:
 		ast_run(p->right);
+		rvalue();
 		break;
 	case Plus: case Minus: case Div: case Mul: case DivRest:
 	case BinaryOr: case BinaryAnd: case BinaryXor:

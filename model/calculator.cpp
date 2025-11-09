@@ -17,6 +17,7 @@ static int last_type;
 static int last_ident;
 static unsigned last_flags;
 static long last_number;
+static bool need_return;
 
 static const char* project_url;
 const char*	library_url;
@@ -238,9 +239,9 @@ static int getscope() {
 	return 0;
 }
 
-static void create_instance(sectioni& es, int type, int offset, int ast) {
+static void create_instance(int sec, int type, int offset, int ast) {
 	auto& e = bsdata<symboli>::get(type);
-	es.setvalue(offset, symbol_size(type), const_number(ast));
+	set_value(sec, offset, symbol_size(type), const_number(ast));
 }
 
 static void instance_symbol(int sid, int section_id) {
@@ -264,7 +265,7 @@ static void instance_symbol(int sid, int section_id) {
 		e.instance.offset = s.size;
 		s.reserve(e.size);
 		s.size += e.size;
-		create_instance(s, e.type, e.instance.offset, e.value);
+		create_instance(section_id, e.type, e.instance.offset, e.value);
 	}
 }
 
