@@ -1,6 +1,9 @@
-define cool_token = 333
+import rect
 
-static char* name = "Tension" + " " + cool_token + " " + "spear" + "."
+def token = 1144
+
+static char* name = "Tension" + " " + token + " " + "spear" + "."
+static rect rc
 
 static int x = 10
 static int y = 8

@@ -154,8 +154,20 @@ bool symbol(int sid, symbolfn v) {
 const char* symbol_name(int sid) {
 	if(sid == -1)
 		return "";
-	auto& e = bsdata<symboli>::get(sid);
-	return strings.get(e.ids);
+	auto p = &bsdata<symboli>::get(sid);
+	auto pointer_level = 0;
+	while(p->scope == PointerScope) {
+		p = &bsdata<symboli>::get(p->type);
+		pointer_level++;
+	}
+	if(!pointer_level)
+		return strings.get(p->ids);
+	static char temp[260];
+	stringbuilder sb(temp);
+	sb.add(string_name(p->ids));
+	for(auto i = 0; i < pointer_level; i++)
+		sb.add("*");
+	return temp;
 }
 
 void symbol_set(int sid, symbolfn v) {
@@ -183,6 +195,17 @@ int symbol_type(int sid) {
 	if(n == -1)
 		return sid;
 	return n;
+}
+
+int symbol_requisit(int sid, int index) {
+	for(auto& e : bsdata<symboli>()) {
+		if(e.parent != sid)
+			continue;
+		if(index == 0)
+			return e.getindex();
+		index--;
+	}
+	return -1;
 }
 
 int symbol_size(int sid) {
@@ -242,7 +265,6 @@ static int getscope() {
 }
 
 static void create_instance(int sec, int type, int offset, int ast) {
-	auto& e = bsdata<symboli>::get(type);
 	set_value(sec, offset, symbol_size(type), const_expression(ast));
 }
 
@@ -1182,7 +1204,7 @@ static void parse_import() {
 }
 
 static void parse_define() {
-	if(!word("define"))
+	if(!word("def"))
 		return;
 	parse_identifier();
 	skip("=");

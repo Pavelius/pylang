@@ -84,6 +84,7 @@ int operation_value(int i);
 int reference(int type);
 int string_id(const char* name);
 int symbol_ast(int sid);
+int symbol_requisit(int sid, int index);
 int symbol_run(const char* symbol, const char* classid);
 int symbol_scope(int sid);
 int symbol_size(int sid);

@@ -18,11 +18,10 @@ static void printcnf_proc(const char* format, const char* format_param) {
 		printcnf(format);
 }
 
-void symbol_info(stringbuilder& sb, const symboli& e) {
+static void symbol_info(stringbuilder& sb, const symboli& e) {
 	auto sid = e.getindex();
 	if(e.type != -1) {
-		auto& et = bsdata<symboli>::get(e.type);
-		sb.add(string_name(et.ids));
+		sb.add(symbol_name(e.type));
 		sb.add(" ");
 	}
 	sb.add(string_name(e.ids));
@@ -47,11 +46,12 @@ static void print_types() {
 		if(e.ispredefined() || e.type == -1 || e.ispointer() || !e.istype())
 			continue;
 		auto sid = &e - bsdata<symboli>::begin();
-		println("Module %1 (size %2i)", string_name(e.ids), e.size);
+		println("module %1 (size %2i)", symbol_name(sid), e.size);
 		for(auto& m : bsdata<symboli>()) {
 			if(m.ispredefined() || m.type == -1 || m.parent != sid)
 				continue;
 			sb.clear(); symbol_info(sb, m);
+			print(" ");
 			println(sb);
 		}
 	}
