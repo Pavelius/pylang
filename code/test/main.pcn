@@ -1,3 +1,5 @@
+static char* name = "Tension"
+
 static int x = 10
 static int y = 8
 

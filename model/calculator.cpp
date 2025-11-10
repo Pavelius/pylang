@@ -459,6 +459,22 @@ static asti ast_object(int i) {
 	return bsdata<asti>::get(i);
 }
 
+static int add_literals(int a1, int a2) {
+	stringbuilder sb(last_string);
+	sb.clear();
+	sb.add(string_name(a1));
+	sb.add(string_name(a2));
+	return string_id(last_string);
+}
+
+static int add_literal_and_number(int a1, int a2) {
+	stringbuilder sb(last_string);
+	sb.clear();
+	sb.add(string_name(a1));
+	sb.add("%1i", a2);
+	return string_id(last_string);
+}
+
 // Optimize operation before ut to syntax tree
 static void optimize(operationn& op, int& left, int& right) {
 	if(isterminal(op))
@@ -470,6 +486,16 @@ static void optimize(operationn& op, int& left, int& right) {
 			right = arifmetic(op, p1.right, p2.right);
 			left = -1;
 			op = Number;
+		} else if(p1.op == Text && op == Plus) {
+			if(p1.op == Text) {
+				right = add_literals(p1.right, p2.right);
+				left = -1;
+				op = Text;
+			} else if(p1.op == Number) {
+				right = add_literal_and_number(p1.right, p2.right);
+				left = -1;
+				op = Text;
+			}
 		}
 	}
 }

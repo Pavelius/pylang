@@ -193,9 +193,9 @@ static void ast_run(int v) {
 		break;
 	case Scope:
 		ast_run(p->left);
-		rvalue();
-		ast_run(p->right);
 		lvalue();
+		ast_run(p->right);
+		rvalue();
 		scope(get(-2), get(-1));
 		popv();
 		break;
