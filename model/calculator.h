@@ -12,7 +12,7 @@ enum operationn {
 	Number, Text, Identifier, Symbol, List,
 };
 enum symboln {
-	Void, Auto, i8, u8, i16, u16, i32, u32, i64, u64, Bool, StringType
+	Void, Auto, i8, u8, i16, u16, i32, u32, i64, u64, Bool
 };
 enum symbolfn {
 	Static, Private, Predefined, UseRead, UseWrite, Complete, Function,
@@ -55,8 +55,7 @@ struct definei {
 	int			ast;
 };
 
-typedef void(*fnprint_scripter)(const char* format, const char* format_param);
-extern fnprint_scripter scripter_error_proc;
+extern int string_type;
 
 void calculator_file_parse(const char* url);
 void calculator_parse(const char* code);
@@ -73,11 +72,15 @@ void symbol_type(int sid, int value);
 
 int arifmetic(operationn op, int v1, int v2);
 int ast_add(operationn op, int left, int right);
+int const_expression(int ast);
 int const_number(int ast);
 int create_symbol(int id, int type, unsigned flags, int scope, int parent);
 int define_ast(int sid);
 int dereference(int type);
 int find_symbol(int ids, int scope, int parent);
+int operation_sec(int i);
+int operation_type(int i);
+int operation_value(int i);
 int reference(int type);
 int string_id(const char* name);
 int symbol_ast(int sid);

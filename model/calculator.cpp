@@ -22,6 +22,8 @@ static bool need_return;
 static const char* project_url;
 const char*	library_url;
 
+int string_type;
+
 static const char* p;
 static const char* p_start;
 static const char* p_start_line;
@@ -241,7 +243,7 @@ static int getscope() {
 
 static void create_instance(int sec, int type, int offset, int ast) {
 	auto& e = bsdata<symboli>::get(type);
-	set_value(sec, offset, symbol_size(type), const_number(ast));
+	set_value(sec, offset, symbol_size(type), const_expression(ast));
 }
 
 static void instance_symbol(int sid, int section_id) {
@@ -423,17 +425,13 @@ static int check_zero(int value, const char* format_error) {
 	return value;
 }
 
-static int check_zero(int value) {
-	return check_zero(value, "Division by zero");
-}
-
 int arifmetic(operationn op, int v1, int v2) {
 	switch(op) {
 	case Plus: return v1 + v2;
 	case Minus: return v1 - v2;
 	case Mul: return v1 * v2;
-	case Div: return v1 / check_zero(v2);
-	case DivRest: return v1 % check_zero(v2);
+	case Div: return v1 / check_zero(v2, "Division by zero");
+	case DivRest: return v1 % check_zero(v2, "Division by zero");
 	case BinaryOr: return v1 | v2;
 	case BinaryAnd: return v1 & v2;
 	case BinaryXor: return v1 ^ v2;
@@ -487,11 +485,11 @@ static void optimize(operationn& op, int& left, int& right) {
 			left = -1;
 			op = Number;
 		} else if(p1.op == Text && op == Plus) {
-			if(p1.op == Text) {
+			if(p2.op == Text) {
 				right = add_literal(p1.right, p2.right);
 				left = -1;
 				op = Text;
-			} else if(p1.op == Number) {
+			} else if(p2.op == Number) {
 				right = add_literal_and_number(p1.right, p2.right);
 				left = -1;
 				op = Text;
@@ -1241,12 +1239,12 @@ static void symbol_initialize() {
 	add_symbol(i64, "long", 8);
 	add_symbol(u64, "ulong", 8);
 	add_symbol(Bool, "bool", 4);
-	add_symbol(StringType, "char*", size_of_pointer);
 	add_symbol(ModuleSection, ".module");
 	add_symbol(LocalSection, ".local");
 	add_symbol(DataSection, ".data");
 	add_symbol(UDataSection, ".bss");
 	add_symbol(StringSection, ".string");
+	string_type = reference(i8);
 }
 
 static void calculator_initialize() {

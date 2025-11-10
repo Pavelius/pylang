@@ -1,5 +1,6 @@
 #include "bsdata.h"
 #include "calculator.h"
+#include "print.h"
 #include "stringbuilder.h"
 #include "section.h"
 #include "stringa.h"
@@ -18,7 +19,6 @@ static int operations_top;
 static char system_stack[256 * 256];
 static int stack_top;
 static bool need_return;
-fnprint_scripter scripter_error_proc;
 
 struct pushreturn {
 	bool value;
@@ -28,8 +28,8 @@ struct pushreturn {
 
 static void error(const char* format, ...) {
 	XVA_FORMAT(format);
-	if(scripter_error_proc)
-		scripter_error_proc(format, format_param);
+	printv(format, format_param);
+	println();
 }
 
 static void pushv() {
@@ -108,7 +108,7 @@ static int add_string_value(const char* value) {
 static void push_literal(int ids) {
 	get().clear();
 	get().value = add_string_value(string_name(ids));
-	get().type = StringType;
+	get().type = string_type;
 	get().sec = StringSection;
 	pushv();
 }
@@ -252,7 +252,7 @@ int const_number(int ast) {
 	ast_run(ast);
 	popv();
 	if(get().type != i32)
-		error("Must be constant expression");
+		error("Must be constant number");
 	return get().value;
 }
 
@@ -261,7 +261,22 @@ int const_expression(int ast) {
 		return 0;
 	ast_run(ast);
 	popv();
+	auto type = get().type;
+	if(type != i32 && type != string_type)
+		error("Must be constant expression");
 	return get().value;
+}
+
+int operation_type(int i) {
+	return get(i).type;
+}
+
+int operation_sec(int i) {
+	return get(i).sec;
+}
+
+int operation_value(int i) {
+	return get(i).value;
 }
 
 int symbol_run(const char* symbol, const char* classid) {
@@ -274,5 +289,6 @@ int symbol_run(const char* symbol, const char* classid) {
 	stack_top = lenghtof(system_stack) - 4;
 	pushreturn push_return(false);
 	ast_run(symbol_ast(sid));
-	return get(-1).value;
+	popv();
+	return get().value;
 }

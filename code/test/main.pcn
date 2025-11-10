@@ -1,8 +1,10 @@
-static char* name = "Tension"
+define cool_token = 333
+
+static char* name = "Tension" + " " + cool_token + " " + "spear" + "."
 
 static int x = 10
 static int y = 8
 
 int run()
  y = (x + 10 / 2 - y) * 2
- return y
+ return name

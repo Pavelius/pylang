@@ -84,7 +84,7 @@ int sectioni::addstring(const char* value, size_t len) {
 	if(i==-1) {
 		i = size;
 		reserve(size + len + 1);
-		memcpy(data + i, value, len + 1);
+		memcpy((char*)data + i, value, len + 1);
 		size = i + len + 1;
 	}
 	return i;

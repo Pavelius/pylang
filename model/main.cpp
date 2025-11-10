@@ -74,20 +74,17 @@ static void print_symbols() {
 	}
 }
 
-static void errorv(const char* format, const char* format_param) {
-	printv(format, format_param);
-	println();
-}
-
 int main() {
 	print_proc = printcnf_proc;
-	scripter_error_proc = errorv;
 	initialize_sections();
 	project_compile("code/test");
 	if(iserrors())
 		return -1;
 	print_types();
 	auto test_value = symbol_run("run", "main");
-	println("Result is %1i", test_value);
+	if(operation_type(0)==string_type)
+		println("Result string `%1`", section(StringSection).ptr(test_value));
+	else
+		println("Result number is %1i", test_value);
 	return 0;
 }
