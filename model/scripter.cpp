@@ -248,6 +248,14 @@ int const_number(int ast) {
 	return get().value;
 }
 
+int const_expression(int ast) {
+	if(ast == -1)
+		return 0;
+	ast_run(ast);
+	popv();
+	return get().value;
+}
+
 int symbol_run(const char* symbol, const char* classid) {
 	auto tid = find_symbol(string_id(classid), TypeScope, 0);
 	if(tid == -1)
