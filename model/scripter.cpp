@@ -2,6 +2,7 @@
 #include "calculator.h"
 #include "stringbuilder.h"
 #include "section.h"
+#include "stringa.h"
 
 struct evaluei {
 	int	type;
@@ -98,10 +99,17 @@ static void push_number(int value) {
 	pushv();
 }
 
+static int add_string_value(const char* value) {
+	auto& e = section(StringSection);
+	auto len = zlen(value);
+	return e.addstring(value, len);
+}
+
 static void push_literal(int ids) {
 	get().clear();
-	get().value = ids;
-	get().type = get_string_type();
+	get().value = add_string_value(string_name(ids));
+	get().type = StringType;
+	get().sec = StringSection;
 	pushv();
 }
 

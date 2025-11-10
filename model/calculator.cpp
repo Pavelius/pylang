@@ -459,7 +459,7 @@ static asti ast_object(int i) {
 	return bsdata<asti>::get(i);
 }
 
-static int add_literals(int a1, int a2) {
+static int add_literal(int a1, int a2) {
 	stringbuilder sb(last_string);
 	sb.clear();
 	sb.add(string_name(a1));
@@ -488,7 +488,7 @@ static void optimize(operationn& op, int& left, int& right) {
 			op = Number;
 		} else if(p1.op == Text && op == Plus) {
 			if(p1.op == Text) {
-				right = add_literals(p1.right, p2.right);
+				right = add_literal(p1.right, p2.right);
 				left = -1;
 				op = Text;
 			} else if(p1.op == Number) {
@@ -1241,10 +1241,12 @@ static void symbol_initialize() {
 	add_symbol(i64, "long", 8);
 	add_symbol(u64, "ulong", 8);
 	add_symbol(Bool, "bool", 4);
+	add_symbol(StringType, "char*", size_of_pointer);
 	add_symbol(ModuleSection, ".module");
 	add_symbol(LocalSection, ".local");
 	add_symbol(DataSection, ".data");
 	add_symbol(UDataSection, ".bss");
+	add_symbol(StringSection, ".string");
 }
 
 static void calculator_initialize() {

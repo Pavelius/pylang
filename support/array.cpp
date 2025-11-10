@@ -64,6 +64,23 @@ void array::setup(size_t size) {
 	this->element_size = size;
 }
 
+void* realloc_data(void* data, size_t new_size) {
+	if(data) {
+		auto p = realloc(data, new_size);
+		if(!p)
+			exit(0);
+		return p;
+	} else
+		return malloc(new_size);
+}
+
+void* realloc_data(void* data, size_t new_size, size_t& new_size_maximum) {
+	if(new_size<new_size_maximum)
+		return data;
+	new_size_maximum = rmoptimal(new_size);
+	return realloc_data(data, new_size);
+}
+
 void array::reserve(unsigned count) {
 	if(!isgrowable())
 		return;
@@ -72,13 +89,7 @@ void array::reserve(unsigned count) {
 	if(data && count < getmaximum())
 		return;
 	count_maximum = rmoptimal(count);
-	if(data) {
-		auto p = realloc(data, count_maximum * element_size);
-		if(!p)
-			exit(0);
-		data = p;
-	} else
-		data = malloc(count_maximum * element_size);
+	data = realloc_data(data, count_maximum * element_size);
 }
 
 void* array::findv(const char* value, unsigned offset, size_t string_size) const {

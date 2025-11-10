@@ -1,6 +1,7 @@
 #include "bsdata.h"
 #include "slice.h"
 #include "section.h"
+#include "stringa.h"
 
 BSDATAC(sectioni, 256)
 
@@ -60,18 +61,8 @@ int get_value(int sec, int offset, int size) {
 
 void sectioni::reserve(size_t size) {
 	auto total = this->size + size;
-	if(isvirtual())
-		return;
-	if(total <= size_maximum)
-		return;
-	size_maximum = rmoptimal(total);
-	if(data) {
-		auto p = realloc(data, size_maximum);
-		if(!p)
-			exit(0);
-		data = p;
-	} else
-		data = malloc(size_maximum);
+	if(!isvirtual())
+		data = realloc_data(data, total, size_maximum);
 }
 
 char* sectioni::ptr(int offset) const {
@@ -82,6 +73,21 @@ char* sectioni::ptr(int offset) const {
 
 sectioni& section(int sec) {
 	return bsdata<sectioni>::elements[sec];
+}
+
+int sectioni::addstring(const char* value, size_t len) {
+	auto i = -1;
+	if(isvirtual())
+		return i;
+	if(data)
+		i = find_string((char*)data, (char*)data + size, value, len);
+	if(i==-1) {
+		i = size;
+		reserve(size + len + 1);
+		memcpy(data + i, value, len + 1);
+		size = i + len + 1;
+	}
+	return i;
 }
 
 void initialize_sections() {

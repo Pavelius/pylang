@@ -12,7 +12,7 @@ enum operationn {
 	Number, Text, Identifier, Symbol, List,
 };
 enum symboln {
-	Void, Auto, i8, u8, i16, u16, i32, u32, i64, u64, Bool,
+	Void, Auto, i8, u8, i16, u16, i32, u32, i64, u64, Bool, StringType
 };
 enum symbolfn {
 	Static, Private, Predefined, UseRead, UseWrite, Complete, Function,

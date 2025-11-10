@@ -48,3 +48,6 @@ private:
 	void shrink(unsigned offset, size_t delta);
 	void zero(unsigned offset, size_t delta);
 };
+
+void* realloc_data(void* data, size_t new_size);
+void* realloc_data(void* data, size_t new_size, size_t& new_size_maximum);

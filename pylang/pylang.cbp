@@ -34,6 +34,14 @@
 			<Add option="-Wall" />
 		</Compiler>
 		<Unit filename="../code/test/main.pcn" />
+		<Unit filename="../model/calculator.cpp" />
+		<Unit filename="../model/calculator.h" />
+		<Unit filename="../model/main.cpp" />
+		<Unit filename="../model/scope.cpp" />
+		<Unit filename="../model/scope.h" />
+		<Unit filename="../model/scripter.cpp" />
+		<Unit filename="../model/section.cpp" />
+		<Unit filename="../model/section.h" />
 		<Unit filename="../platform/nix_io_file.cpp" />
 		<Unit filename="../support/array.cpp" />
 		<Unit filename="../support/array.h" />
@@ -41,22 +49,15 @@
 		<Unit filename="../support/flagable.h" />
 		<Unit filename="../support/io_stream.cpp" />
 		<Unit filename="../support/io_stream.h" />
-		<Unit filename="../support/langparse.h" />
 		<Unit filename="../support/math.cpp" />
 		<Unit filename="../support/math.h" />
+		<Unit filename="../support/print.cpp" />
+		<Unit filename="../support/print.h" />
 		<Unit filename="../support/slice.h" />
 		<Unit filename="../support/stringa.cpp" />
 		<Unit filename="../support/stringa.h" />
 		<Unit filename="../support/stringbuilder.cpp" />
 		<Unit filename="../support/stringbuilder.h" />
-		<Unit filename="calculator.cpp" />
-		<Unit filename="calculator.h" />
-		<Unit filename="main.cpp" />
-		<Unit filename="scope.cpp" />
-		<Unit filename="scope.h" />
-		<Unit filename="scripter.cpp" />
-		<Unit filename="section.cpp" />
-		<Unit filename="section.h" />
 		<Extensions />
 	</Project>
 </CodeBlocks_project_file>
