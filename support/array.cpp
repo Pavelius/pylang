@@ -9,7 +9,7 @@ extern "C" void	free(void* pointer);
 
 unsigned rmoptimal(unsigned need_count) {
 	const unsigned mc = 4 * 256 * 256;
-	unsigned m = 8;
+	unsigned m = 16;
 	while(m < mc) {
 		m = m << 1;
 		if(need_count < m)
@@ -75,7 +75,7 @@ void* realloc_data(void* data, size_t new_size) {
 }
 
 void* realloc_data(void* data, size_t new_size, size_t& new_size_maximum) {
-	if(new_size<new_size_maximum)
+	if(new_size <= new_size_maximum)
 		return data;
 	new_size_maximum = rmoptimal(new_size);
 	return realloc_data(data, new_size);
@@ -325,7 +325,7 @@ void array::repack(unsigned& start, unsigned count) {
 	if(!count || (start + count != this->count))
 		return;
 	auto i = indexof(findu(ptr(start), count * element_size));
-	if(i==-1 || (unsigned)i>=start)
+	if(i == -1 || (unsigned)i >= start)
 		return;
 	start = i;
 	this->count = start + count;

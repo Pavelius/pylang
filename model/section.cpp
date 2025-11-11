@@ -22,11 +22,11 @@ static unsigned rmoptimal(unsigned need_count) {
 	return need_count + mc;
 }
 
-void sectioni::add(const void* source, size_t size) {
-	reserve(size);
-	if(data)
-		memcpy((unsigned char*)data, source, size);
-	this->size += size;
+void sectioni::add(const void* source, size_t source_size) {
+	reserve(size + source_size);
+	if(data && source)
+		memcpy((unsigned char*)data + size, source, source_size);
+	size += source_size;
 }
 
 void set_value(int sec, int offset, int size, int value) {
@@ -59,10 +59,9 @@ int get_value(int sec, int offset, int size) {
 	}
 }
 
-void sectioni::reserve(size_t size) {
-	auto total = this->size + size;
+void sectioni::reserve(size_t new_size) {
 	if(!isvirtual())
-		data = realloc_data(data, total, size_maximum);
+		data = realloc_data(data, new_size, size_maximum);
 }
 
 char* sectioni::ptr(int offset) const {
@@ -81,11 +80,9 @@ int sectioni::addstring(const char* value, size_t len) {
 		return i;
 	if(data)
 		i = find_string((char*)data, (char*)data + size, value, len);
-	if(i==-1) {
+	if(i == -1) {
 		i = size;
-		reserve(size + len + 1);
-		memcpy((char*)data + i, value, len + 1);
-		size = i + len + 1;
+		add(value, len + 1);
 	}
 	return i;
 }

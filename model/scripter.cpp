@@ -26,6 +26,8 @@ struct pushreturn {
 	~pushreturn() { need_return = value; }
 };
 
+static void ast_run(int v);
+
 static void error(const char* format, ...) {
 	XVA_FORMAT(format);
 	printv(format, format_param);
@@ -166,28 +168,38 @@ static void cast(int type, evaluei& e) {
 static int run_count(int a, operationn type) {
 	auto r = 1;
 	auto p = bsdata<asti>::begin() + a;
-	while(p->op==type) {
-		if(p->left==-1)
-			break;
+	while(p->op == type) {
 		r++;
 		p = bsdata<asti>::begin() + p->left;
 	}
 	return r;
 }
 
-static void run_initialize(int a) {
-	auto n = run_count(a, Initialize);
-	int* pi = new int[n];
+static int* run_alloc(int a, operationn type, int c) {
+	auto r = new int[c];
 	auto p = bsdata<asti>::begin() + a;
-	for(auto i = n-1; i>=0; i--) {
-		pi[n] = p->right;
-		if(p->left==-1)
+	auto n = c - 1;
+	while(p->op == type) {
+		r[n--] = p->right;
+		if(n == 0) {
+			r[0] = p->left;
 			break;
-		p = bsdata<asti>::begin() + p->left;
+		} else
+			p = bsdata<asti>::begin() + p->left;
 	}
-	for(auto i = 0; i < n; i++)
-		run_initialize(pi[i]);
-	delete[] pi;
+	return r;
+}
+
+static void run_initialize(int a, operationn type) {
+	auto n = run_count(a, type);
+	if(n == 1)
+		ast_run(a);
+	else {
+		auto p = run_alloc(a, type, n);
+		for(auto i = 0; i < n; i++)
+			ast_run(p[i]);
+		delete[] p;
+	}
 }
 
 static void ast_run(int v) {
@@ -248,6 +260,9 @@ static void ast_run(int v) {
 		if(need_return)
 			break;
 		ast_run(p->right);
+		break;
+	case Initialize:
+		run_initialize(v, Initialize);
 		break;
 	case Return:
 		ast_run(p->right);

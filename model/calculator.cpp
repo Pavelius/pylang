@@ -287,8 +287,7 @@ static void instance_symbol(int sid, int section_id) {
 	} else {
 		auto& s = bsdata<sectioni>::get(section_id);
 		e.instance.offset = s.size;
-		s.reserve(e.size);
-		s.size += e.size;
+		s.add(0, e.size);
 		create_instance(section_id, e.type, e.instance.offset, e.value);
 	}
 }

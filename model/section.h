@@ -4,9 +4,10 @@ enum sectionn {
 	ModuleSection, LocalSection, DataSection, UDataSection, StringSection,
 };
 struct sectioni {
-	int	ids; // section name
-	void* data;
-	size_t size, size_maximum;
+	int		ids; // section name
+	void*	data;
+	size_t	size, size_maximum;
+	sectioni() : ids(-1), data(0), size(0), size_maximum(0) {}
 	template<class T> void add(const T& v) { add(&v, sizeof(v)); }
 	char* ptr(int offset) const;
 	int addstring(const char* source, size_t len);
