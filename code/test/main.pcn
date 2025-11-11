@@ -3,7 +3,7 @@ import rect
 def token = 1144
 
 static char* name = "Tension" + " " + token + " " + "spear" + "."
-static rect rc
+static rect rc = {1,5,5,2}
 
 static int x = 10
 static int y = 8

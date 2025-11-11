@@ -992,7 +992,21 @@ static int expression() {
 }
 
 static int initialization_list() {
-	return expression();
+	if(*p=='{') {
+		int r = -1;
+		skipws(1);
+		while(*p) {
+			add_list(Initialize, r, initialization_list());
+			if(*p==',') {
+				skipws(1);
+				continue;
+			}
+			skip("}");
+			break;
+		}
+		return r;
+	} else
+		return expression();
 }
 
 static int getmoduleposition() {

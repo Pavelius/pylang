@@ -163,6 +163,33 @@ static void cast(int type, evaluei& e) {
 	}
 }
 
+static int run_count(int a, operationn type) {
+	auto r = 1;
+	auto p = bsdata<asti>::begin() + a;
+	while(p->op==type) {
+		if(p->left==-1)
+			break;
+		r++;
+		p = bsdata<asti>::begin() + p->left;
+	}
+	return r;
+}
+
+static void run_initialize(int a) {
+	auto n = run_count(a, Initialize);
+	int* pi = new int[n];
+	auto p = bsdata<asti>::begin() + a;
+	for(auto i = n-1; i>=0; i--) {
+		pi[n] = p->right;
+		if(p->left==-1)
+			break;
+		p = bsdata<asti>::begin() + p->left;
+	}
+	for(auto i = 0; i < n; i++)
+		run_initialize(pi[i]);
+	delete[] pi;
+}
+
 static void ast_run(int v) {
 	if(v == -1)
 		return;
