@@ -7,6 +7,7 @@
 #include "section.h"
 #include "stringbuilder.h"
 #include "stringa.h"
+#include "vector.h"
 
 BSDATAD(asti)
 BSDATAD(definei)
@@ -18,6 +19,7 @@ static int last_ident;
 static unsigned last_flags;
 static long last_number;
 static bool need_return;
+static vector<int> ast_list_elements;
 
 static const char* project_url;
 const char*	library_url;
@@ -62,6 +64,20 @@ struct pushfile {
 	}
 	~pushfile() { p = pointer; p_start = start; p_start_line = start_line; p_url = url; last_ident = ident; }
 };
+struct astlist : vector<int> {
+	void add(int v) { vector::add(v); }
+	int initialize();
+};
+
+int astlist::initialize() {
+	if(!count)
+		return -1;
+	else if(count==1)
+		return *((int*)data);
+	auto p = (const int*)ast_list_elements.addu(data, count);
+	auto i = ast_list_elements.indexof(p);
+	return ast_add(List, i, count);
+}
 
 static void errorv(const char* url, const char* format, const char* format_param, const char* example) {
 	if(last_url_error != url) {
@@ -256,6 +272,16 @@ const char* symbol_name(int sid, int value) {
 	if(sid == -1)
 		return "unknown";
 	return string_name(bsdata<symboli>::get(sid).ids);
+}
+
+static asti ast_object(int i) {
+	if(i == -1)
+		return {Nop, -1, -1};
+	return bsdata<asti>::get(i);
+}
+
+slice<int> ast_collection(int n, int count) {
+	return slice<int>((int*)ast_list_elements.data + n, (int*)ast_list_elements.data + n + count);
 }
 
 static int getscope() {
@@ -470,12 +496,6 @@ int arifmetic(operationn op, int v1, int v2) {
 	case Not: return v1 ? 0 : 1;
 	default: return v1;
 	}
-}
-
-static asti ast_object(int i) {
-	if(i == -1)
-		return {Nop, -1, -1};
-	return bsdata<asti>::get(i);
 }
 
 static int add_literal(int a1, int a2) {
@@ -762,7 +782,7 @@ static void binary(int& a, operationn op, int b) {
 	a = ast_add(op, a, b);
 }
 
-static void add_list(operationn op, int& result, int value) {
+static void add_list_deprecated(operationn op, int& result, int value) {
 	if(value == -1)
 		return;
 	if(result == -1)
@@ -771,19 +791,19 @@ static void add_list(operationn op, int& result, int value) {
 		result = ast_add(op, result, value);
 }
 
-static void add_list(int& result, int value) {
-	add_list(List, result, value);
+static void add_list_deprecated(int& result, int value) {
+	add_list_deprecated(List, result, value);
 }
 
 static int parameter_list() {
-	auto result = -1;
+	astlist list;
 	while(true) {
-		add_list(result, expression());
+		list.add(expression());
 		if(match(","))
 			continue;
 		break;
 	}
-	return result;
+	return list.initialize();
 }
 
 static int unary(operationn op, int b) {
@@ -992,10 +1012,10 @@ static int expression() {
 
 static int initialization_list() {
 	if(*p=='{') {
-		int r = -1;
+		astlist list;
 		skipws(1);
 		while(*p) {
-			add_list(Initialize, r, initialization_list());
+			list.add(initialization_list());
 			if(*p==',') {
 				skipws(1);
 				continue;
@@ -1003,7 +1023,7 @@ static int initialization_list() {
 			skip("}");
 			break;
 		}
-		return r;
+		return list.initialize();
 	} else
 		return expression();
 }
@@ -1073,11 +1093,11 @@ static int statement() {
 		while(match("elif")) {
 			auto e = expression();
 			auto s = statements();
-			add_list(Else, r, ast_add(If, e, s));
+			add_list_deprecated(Else, r, ast_add(If, e, s));
 		}
 		if(match("else")) {
 			auto s = statements();
-			add_list(Default, r, ast_add(If, s));
+			add_list_deprecated(Default, r, ast_add(If, s));
 		}
 		return r;
 	} else if(match("match")) {
@@ -1091,7 +1111,7 @@ static int statement() {
 		while(match("case")) {
 			auto e = expression();
 			auto s = statements();
-			add_list(Case, r, ast_add(If, e, s));
+			add_list_deprecated(Case, r, ast_add(If, e, s));
 		}
 		return r;
 	} else if(match("while")) {
@@ -1121,10 +1141,10 @@ static int statement() {
 
 static int statements() {
 	scopei push_scope(getmoduleposition());
-	auto r = -1;
+	astlist list;
 	while(next_statement())
-		add_list(r, statement());
-	return r;
+		list.add(statement());
+	return list.initialize();
 }
 
 static void parse_enum() {
@@ -1304,6 +1324,23 @@ void calculator_file_parse(const char* url) {
 	skipws();
 	parse_module();
 	delete p1;
+}
+
+static void test_lists() {
+	astlist t1;
+	t1.add(10);
+	t1.add(12);
+	t1.add(10);
+	t1.add(4);
+	auto a1 = t1.initialize();
+	astlist t2;
+	t2.add(11);
+	t2.add(1);
+	t2.add(4);
+	auto a2 = t2.initialize();
+	auto a3 = t1.initialize();
+	t1.add(40);
+	auto a4 = t1.initialize();
 }
 
 void project_compile(const char* url) {

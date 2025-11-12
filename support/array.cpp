@@ -18,6 +18,46 @@ unsigned rmoptimal(unsigned need_count) {
 	return need_count + mc;
 }
 
+void* realloc_data(void* data, size_t new_size) {
+	if(data) {
+		auto p = realloc(data, new_size);
+		if(!p)
+			exit(0);
+		return p;
+	} else
+		return malloc(new_size);
+}
+
+void* realloc_data(void* data, size_t new_size, size_t& new_size_maximum) {
+	if(new_size <= new_size_maximum)
+		return data;
+	new_size_maximum = rmoptimal(new_size);
+	return realloc_data(data, new_size);
+}
+
+void* find_data(void* source_data, size_t source_count, const void* data, size_t count) {
+	if(!source_data || !data)
+		return 0;
+	if(count > source_count)
+		return 0;
+	auto ch = *((unsigned char*)data);
+	if(count==1)
+		return memchr(source_data, ch, source_count);
+	auto pb = (unsigned char*)source_data;
+	auto pe = pb + (source_count - count);
+	auto ps = (unsigned char*)data + 1;
+	auto n = count - 1;
+	while(pb < pe) {
+		pb = (unsigned char*)memchr(pb, ch, pe - pb);
+		if(!pb)
+			break;
+		if(memcmp(pb+1, ps, n)==0)
+			return pb;
+		pb++;
+	}
+	return 0;
+}
+
 void* array::add() {
 	if(count >= getmaximum()) {
 		if(isgrowable())
@@ -62,23 +102,6 @@ void array::setup(size_t size) {
 		return;
 	clear();
 	this->element_size = size;
-}
-
-void* realloc_data(void* data, size_t new_size) {
-	if(data) {
-		auto p = realloc(data, new_size);
-		if(!p)
-			exit(0);
-		return p;
-	} else
-		return malloc(new_size);
-}
-
-void* realloc_data(void* data, size_t new_size, size_t& new_size_maximum) {
-	if(new_size <= new_size_maximum)
-		return data;
-	new_size_maximum = rmoptimal(new_size);
-	return realloc_data(data, new_size);
 }
 
 void array::reserve(unsigned count) {
@@ -266,18 +289,7 @@ void array::change(unsigned offset, int size) {
 }
 
 const void* array::findu(const void* value, size_t size) const {
-	auto p = (char*)data;
-	auto pe = (char*)data + count * (this->element_size);
-	auto s = *((char*)value);
-	while(p < pe) {
-		p = (char*)memchr(p, s, pe - p);
-		if(!p || (unsigned(pe - p) < size))
-			break;
-		if(memcmp(p, value, size) == 0)
-			return p;
-		p++;
-	}
-	return 0;
+	return find_data(data, count * element_size, value, size);
 }
 
 void* array::addu(const void* element, unsigned count) {

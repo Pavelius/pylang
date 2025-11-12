@@ -1,5 +1,7 @@
 #pragma once
 
+#include "slice.h"
+
 enum operationn {
 	Nop,
 	Plus, Minus, Div, Mul, DivRest,
@@ -91,6 +93,8 @@ int symbol_size(int sid);
 int symbol_type(int sid);
 
 offseti symbol_section(int sid);
+
+slice<int> ast_collection(int n, int count);
 
 const char* string_name(int sid);
 const char* symbol_name(int sid);

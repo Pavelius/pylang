@@ -58,6 +58,7 @@
 		<Unit filename="../support/stringa.h" />
 		<Unit filename="../support/stringbuilder.cpp" />
 		<Unit filename="../support/stringbuilder.h" />
+		<Unit filename="../support/vector.h" />
 		<Extensions />
 	</Project>
 </CodeBlocks_project_file>

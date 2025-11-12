@@ -230,12 +230,12 @@
 
 1762334271 /home/user-331/projects/pylang/support/slice.h
 
-1762777351 source:/home/user-331/projects/pylang/support/array.cpp
+1762935251 source:/home/user-331/projects/pylang/support/array.cpp
 	"array.h"
 	"math.h"
 	"stringbuilder.h"
 
-1762777183 /home/user-331/projects/pylang/support/array.h
+1762934319 /home/user-331/projects/pylang/support/array.h
 	"slice.h"
 
 1755670326 /home/user-331/projects/pylang/support/math.h
@@ -309,16 +309,17 @@
 	"section.h"
 	"stringbuilder.h"
 
-1762858896 /home/user-331/projects/pylang/model/calculator.h
+1762949611 /home/user-331/projects/pylang/model/calculator.h
+	"slice.h"
 
-1762777490 /home/user-331/projects/pylang/model/section.h
+1762933104 /home/user-331/projects/pylang/model/section.h
 
 1762498692 source:/home/user-331/projects/pylang/model/scope.cpp
 	"scope.h"
 
 1762498692 /home/user-331/projects/pylang/model/scope.h
 
-1762858628 source:/home/user-331/projects/pylang/model/scripter.cpp
+1762949576 source:/home/user-331/projects/pylang/model/scripter.cpp
 	"bsdata.h"
 	"calculator.h"
 	"print.h"
@@ -326,13 +327,13 @@
 	"section.h"
 	"stringa.h"
 
-1762858628 source:/home/user-331/projects/pylang/model/section.cpp
+1762933104 source:/home/user-331/projects/pylang/model/section.cpp
 	"bsdata.h"
 	"slice.h"
 	"section.h"
 	"stringa.h"
 
-1762859376 source:/home/user-331/projects/pylang/model/calculator.cpp
+1762949600 source:/home/user-331/projects/pylang/model/calculator.cpp
 	"bsdata.h"
 	"calculator.h"
 	"flagable.h"
@@ -342,10 +343,14 @@
 	"section.h"
 	"stringbuilder.h"
 	"stringa.h"
+	"vector.h"
 
 1762762906 /home/user-331/projects/pylang/support/print.h
 
 1762762906 source:/home/user-331/projects/pylang/support/print.cpp
 	"print.h"
 	"stringbuilder.h"
+
+1762933104 /home/user-331/projects/pylang/support/vector.h
+	"array.h"
 

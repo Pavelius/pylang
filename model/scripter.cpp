@@ -255,11 +255,12 @@ static void ast_run(int v) {
 		popv();
 		break;
 	case List:
-		ast_run(p->left);
-		popv();
-		if(need_return)
-			break;
-		ast_run(p->right);
+		for(auto a : ast_collection(p->left, p->right)) {
+			ast_run(a);
+			popv();
+			if(need_return)
+				break;
+		}
 		break;
 	case Initialize:
 		run_initialize(v);

@@ -51,3 +51,4 @@ private:
 
 void* realloc_data(void* data, size_t new_size);
 void* realloc_data(void* data, size_t new_size, size_t& new_size_maximum);
+void* find_data(void* source_data, size_t source_count, const void* data, size_t count);
