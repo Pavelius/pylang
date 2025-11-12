@@ -165,43 +165,6 @@ static void cast(int type, evaluei& e) {
 	}
 }
 
-static int run_count(int a, operationn type) {
-	auto r = 1;
-	auto p = bsdata<asti>::begin() + a;
-	while(p->op == type) {
-		r++;
-		p = bsdata<asti>::begin() + p->left;
-	}
-	return r;
-}
-
-static int* run_alloc(int a, operationn type, int c) {
-	auto r = new int[c];
-	auto p = bsdata<asti>::begin() + a;
-	auto n = c - 1;
-	while(p->op == type) {
-		r[n--] = p->right;
-		if(n == 0) {
-			r[0] = p->left;
-			break;
-		} else
-			p = bsdata<asti>::begin() + p->left;
-	}
-	return r;
-}
-
-static void run_initialize(int a) {
-	auto n = run_count(a, Initialize);
-	if(n == 1)
-		ast_run(a);
-	else {
-		auto p = run_alloc(a, Initialize, n);
-		for(auto i = 0; i < n; i++)
-			ast_run(p[i]);
-		delete[] p;
-	}
-}
-
 static void ast_run(int v) {
 	if(v == -1)
 		return;
@@ -263,7 +226,10 @@ static void ast_run(int v) {
 		}
 		break;
 	case Initialize:
-		run_initialize(v);
+		for(auto a : ast_collection(p->left, p->right)) {
+			ast_run(a);
+			popv();
+		}
 		break;
 	case Return:
 		ast_run(p->right);

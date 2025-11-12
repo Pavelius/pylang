@@ -12,6 +12,7 @@
 BSDATAD(asti)
 BSDATAD(definei)
 BSDATAD(symboli)
+static vector<int> ast_lists;
 
 static int function_params;
 static int last_type;
@@ -19,7 +20,6 @@ static int last_ident;
 static unsigned last_flags;
 static long last_number;
 static bool need_return;
-static vector<int> ast_list_elements;
 
 static const char* project_url;
 const char*	library_url;
@@ -66,17 +66,17 @@ struct pushfile {
 };
 struct astlist : vector<int> {
 	void add(int v) { vector::add(v); }
-	int initialize();
+	int initialize(operationn type = List);
 };
 
-int astlist::initialize() {
+int astlist::initialize(operationn type) {
 	if(!count)
 		return -1;
 	else if(count==1)
 		return *((int*)data);
-	auto p = (const int*)ast_list_elements.addu(data, count);
-	auto i = ast_list_elements.indexof(p);
-	return ast_add(List, i, count);
+	auto p = (const int*)ast_lists.addu(data, count);
+	auto i = ast_lists.indexof(p);
+	return ast_add(type, i, count);
 }
 
 static void errorv(const char* url, const char* format, const char* format_param, const char* example) {
@@ -281,7 +281,7 @@ static asti ast_object(int i) {
 }
 
 slice<int> ast_collection(int n, int count) {
-	return slice<int>((int*)ast_list_elements.data + n, (int*)ast_list_elements.data + n + count);
+	return slice<int>((int*)ast_lists.data + n, (int*)ast_lists.data + n + count);
 }
 
 static int getscope() {
@@ -1023,7 +1023,7 @@ static int initialization_list() {
 			skip("}");
 			break;
 		}
-		return list.initialize();
+		return list.initialize(Initialize);
 	} else
 		return expression();
 }
