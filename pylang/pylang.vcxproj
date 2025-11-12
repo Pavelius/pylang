@@ -159,6 +159,7 @@
     <ClInclude Include="..\support\slice.h" />
     <ClInclude Include="..\support\stringa.h" />
     <ClInclude Include="..\support\stringbuilder.h" />
+    <ClInclude Include="..\support\vector.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\code\test\main.pcn" />

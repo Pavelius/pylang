@@ -190,12 +190,12 @@ static int* run_alloc(int a, operationn type, int c) {
 	return r;
 }
 
-static void run_initialize(int a, operationn type) {
-	auto n = run_count(a, type);
+static void run_initialize(int a) {
+	auto n = run_count(a, Initialize);
 	if(n == 1)
 		ast_run(a);
 	else {
-		auto p = run_alloc(a, type, n);
+		auto p = run_alloc(a, Initialize, n);
 		for(auto i = 0; i < n; i++)
 			ast_run(p[i]);
 		delete[] p;
@@ -262,7 +262,7 @@ static void ast_run(int v) {
 		ast_run(p->right);
 		break;
 	case Initialize:
-		run_initialize(v, Initialize);
+		run_initialize(v);
 		break;
 	case Return:
 		ast_run(p->right);
