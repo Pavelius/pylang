@@ -59,12 +59,14 @@ struct definei {
 
 extern int string_type;
 
+void ast_run(int v);
 void calculator_file_parse(const char* url);
 void calculator_parse(const char* code);
 bool isbinary(operationn op);
 bool iserrors();
 bool isterminal(operationn op);
 void project_compile(const char* url);
+void push_symbol(int sid);
 bool symbol(int sid, symbolfn v);
 void symbol_ast(int sid, int value);
 void symbol_count(int sid, int value);

@@ -314,6 +314,11 @@ static void instance_symbol(int sid, int section_id) {
 		auto& s = bsdata<sectioni>::get(section_id);
 		e.instance.offset = s.size;
 		s.add(0, e.size);
+		if(e.value != -1) {
+			push_symbol(sid);
+			ast_run(e.value);
+
+		}
 		create_instance(section_id, e.type, e.instance.offset, e.value);
 	}
 }

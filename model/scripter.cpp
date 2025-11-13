@@ -115,7 +115,7 @@ static void push_literal(int ids) {
 	pushv();
 }
 
-static void push_symbol(int sid) {
+void push_symbol(int sid) {
 	auto& e = get();
 	e.clear();
 	e.sid = sid;
@@ -185,7 +185,7 @@ static void initialization(int start, int count) {
 	}
 }
 
-static void ast_run(int v) {
+void ast_run(int v) {
 	if(v == -1)
 		return;
 	auto p = bsdata<asti>::begin() + v;
