@@ -11,8 +11,8 @@ struct evaluei {
 	int sid; // Symbol id for rvalue conversion. -1 if no rvalue.
 	int sec; // Section id. -1 for none.
 	void clear() { type = i32; value = 0; sec = -1; sid = -1; }
-	bool islvalue() const { return sid != -1; }
-	bool isrvalue() const { return sid == -1; }
+	bool lvalue() const { return sid != -1; }
+	bool rvalue() const { return sid == -1; }
 };
 static evaluei operations[32];
 static int operations_top;
@@ -127,9 +127,9 @@ static void push_symbol(int sid) {
 
 static void rvalue() {
 	auto& e = get(-1);
-	if(e.islvalue())
+	if(e.lvalue())
 		symbol(e.sid, UseRead);
-	if(!e.isrvalue()) {
+	if(!e.rvalue()) {
 		e.type = dereference(e.type);
 		e.value = get_value(e.sec, e.value, symbol_size(e.type));
 		e.sid = -1;
@@ -139,7 +139,7 @@ static void rvalue() {
 
 static void lvalue() {
 	auto& e = get(-1);
-	if(!e.islvalue())
+	if(!e.lvalue())
 		error("Need l-value");
 	else {
 		symbol(e.sid, UseRead);
@@ -162,6 +162,26 @@ static void cast(int type, evaluei& e) {
 	else if(type == Bool && isnumber(e.type)) {
 		e.type = type;
 		e.value = e.value ? 1 : 0;
+	}
+}
+
+static void initialization(int start, int count) {
+	auto push_value = get(-1);
+	auto& e = get();
+	auto index = 0;
+	for(auto a : ast_collection(start, count)) {
+		ast_run(a);
+		e = push_value;
+		if(e.lvalue()) {
+			auto sid = symbol_requisit(push_value.sid, index);
+			if(sid!=-1) {
+				e.type = symbol_type(sid);
+				e.value = push_value.value + symbol_section(sid).offset;
+				assignment(e, get(-1));
+			}
+		}
+		popv();
+		index++;
 	}
 }
 
@@ -226,10 +246,7 @@ static void ast_run(int v) {
 		}
 		break;
 	case Initialize:
-		for(auto a : ast_collection(p->left, p->right)) {
-			ast_run(a);
-			popv();
-		}
+		initialization(p->left, p->right);
 		break;
 	case Return:
 		ast_run(p->right);
