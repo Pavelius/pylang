@@ -26,8 +26,6 @@ struct pushreturn {
 	~pushreturn() { need_return = value; }
 };
 
-static void ast_run(int v);
-
 static void error(const char* format, ...) {
 	XVA_FORMAT(format);
 	printv(format, format_param);
@@ -41,7 +39,7 @@ static void pushv() {
 		error("Operation stack overflov.");
 }
 
-static void popv() {
+void popv() {
 	if(operations_top > 0)
 		operations_top--;
 	else
@@ -125,6 +123,12 @@ void push_symbol(int sid) {
 	pushv();
 }
 
+void push_stack(evaluei v) {
+	auto& e = get();
+	e = v;
+	pushv();
+}
+
 static void rvalue() {
 	auto& e = get(-1);
 	if(e.lvalue())
@@ -152,6 +156,10 @@ static void assignment(evaluei& e1, evaluei& e2) {
 	e1 = e2;
 }
 
+void assignment_operation() {
+	assignment(get(-2), get(-1));
+}
+
 static void scope(evaluei& e1, evaluei& e2) {
 	e1.value += e2.value * symbol_size(dereference(e1.type));
 }
@@ -167,11 +175,11 @@ static void cast(int type, evaluei& e) {
 
 static void initialization(int start, int count) {
 	auto push_value = get(-1);
-	auto& e = get();
+	auto& e = get(-1);
 	auto index = 0;
 	for(auto a : ast_collection(start, count)) {
-		ast_run(a);
 		e = push_value;
+		ast_run(a);
 		if(e.lvalue()) {
 			auto sid = symbol_requisit(push_value.sid, index);
 			if(sid!=-1) {
@@ -183,6 +191,8 @@ static void initialization(int start, int count) {
 		popv();
 		index++;
 	}
+	e = push_value;
+	push_stack(push_value);
 }
 
 void ast_run(int v) {

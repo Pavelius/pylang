@@ -317,9 +317,10 @@ static void instance_symbol(int sid, int section_id) {
 		if(e.value != -1) {
 			push_symbol(sid);
 			ast_run(e.value);
-
+			assignment_operation();
+			popv();
+			popv();
 		}
-		create_instance(section_id, e.type, e.instance.offset, e.value);
 	}
 }
 
