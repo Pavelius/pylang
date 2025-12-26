@@ -123,6 +123,13 @@ void push_symbol(int sid) {
 	pushv();
 }
 
+void push_identifier(int sid) {
+	auto& e = get();
+	e.clear();
+	e.value = sid;
+	pushv();
+}
+
 void push_stack(evaluei v) {
 	auto& e = get();
 	e = v;
@@ -195,6 +202,19 @@ static void initialization(int start, int count) {
 	push_stack(push_value);
 }
 
+static void point_operator(evaluei& e1, evaluei& e2) {
+	auto sid = find_symbol(e2.value, 0, e1.sid);
+	if(sid == -1)
+		error("Can't find member \'%1\'", string_name(e2.value));
+	else {
+		auto sec = symbol_section(sid);
+		e1.sid = sid;
+		e1.type = symbol_type(sid);
+		e1.value = sec.offset;
+		e1.sec = sec.sid;
+	}
+}
+
 void ast_run(int v) {
 	if(v == -1)
 		return;
@@ -221,6 +241,9 @@ void ast_run(int v) {
 	case Call:
 		ast_run(p->right);
 		ast_run(p->left);
+		break;
+	case Identifier:
+		push_identifier(p->right);
 		break;
 	case Number:
 		push_number(p->right);
@@ -271,6 +294,13 @@ void ast_run(int v) {
 		ast_run(p->right);
 		rvalue();
 		binary_operation(p->op);
+		break;
+	case Point:
+		ast_run(p->left);
+		lvalue();
+		ast_run(p->right);
+		point_operator(get(-2), get(-1));
+		popv();
 		break;
 	case Neg:
 		unary_operation(p->op);
