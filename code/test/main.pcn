@@ -4,9 +4,9 @@ def token = 1144
 
 static char* name = "Tension" + " " + token + " " + "spear" + "."
 
-static int x = 10
-static int y = 8
-static rect rc = {10, 10, 10, 5}
+int _x = 10
+int _y = 8
+rect _rc = {10, 10, 10, 5}
 
 int run()
  y = (x + 10 / 2 - y) * 2
