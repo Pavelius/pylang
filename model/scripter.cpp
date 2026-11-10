@@ -65,12 +65,6 @@ static int get_string_type() {
 	return r;
 }
 
-static const asti* get_ast(int v) {
-	if(v == -1)
-		return 0;
-	return bsdata<asti>::begin() + v;
-}
-
 static bool isnumber(int type) {
 	switch(type) {
 	case i8: case u8: case i16: case u16: case i32: case u32: return true;
@@ -218,7 +212,7 @@ static void point_operator(evaluei& e1, evaluei& e2) {
 void ast_run(int v) {
 	if(v == -1)
 		return;
-	auto p = bsdata<asti>::begin() + v;
+	auto p = ast_get(v);
 	switch(p->op) {
 	case If:
 		ast_run(p->right);

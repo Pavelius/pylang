@@ -60,6 +60,8 @@ struct definei {
 
 extern int string_type;
 
+const asti* ast_get(int v);
+
 void assignment_operation();
 void ast_run(int v);
 void calculator_file_parse(const char* url);

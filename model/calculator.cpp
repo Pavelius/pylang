@@ -9,9 +9,10 @@
 #include "stringa.h"
 #include "vector.h"
 
-BSDATAD(asti)
 BSDATAD(definei)
 BSDATAD(symboli)
+
+static vector<asti> asts;
 static vector<int> ast_lists;
 
 static int function_params;
@@ -151,6 +152,12 @@ bool iserrors() {
 	return errors_count > 0;
 }
 
+const asti* ast_get(int v) {
+	if(v == -1)
+		return 0;
+	return asts.begin() + v;
+}
+
 int define_ast(int sid) {
 	if(sid == -1)
 		return -1;
@@ -277,7 +284,7 @@ const char* symbol_name(int sid, int value) {
 static asti ast_object(int i) {
 	if(i == -1)
 		return {Nop, -1, -1};
-	return bsdata<asti>::get(i);
+	return asts[i];
 }
 
 slice<int> ast_collection(int n, int count) {
@@ -448,7 +455,7 @@ static unsigned char find_section(int ids) {
 static void find_type(int ast, int& result) {
 	if(ast == -1 || result != -1)
 		return;
-	auto p = bsdata<asti>::begin() + ast;
+	auto p = asts.begin() + ast;
 	if(p->op == Identifier) {
 		auto type = symbol_type(p->right);
 		if(type != -1)
@@ -463,9 +470,9 @@ static void find_type(int ast, int& result) {
 }
 
 static int find_ast(operationn op, int left, int right) {
-	for(auto& e : bsdata<asti>()) {
+	for(auto& e : asts) {
 		if(e.op == op && e.left == left && e.right == right)
-			return &e - bsdata<asti>::begin();
+			return &e - asts.begin();
 	}
 	return -1;
 }
@@ -551,11 +558,11 @@ int ast_add(operationn op, int left, int right) {
 	if(sid == -1 && !isstrict(op))
 		sid = find_ast(op, right, left);
 	if(sid == -1) {
-		auto p = bsdata<asti>::add();
+		auto p = asts.add();
 		p->op = op;
 		p->left = left;
 		p->right = right;
-		sid = p - bsdata<asti>::begin();
+		sid = p - asts.begin();
 	}
 	return sid;
 }
