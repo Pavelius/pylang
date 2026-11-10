@@ -1,8 +1,8 @@
 #include "scope.h"
 
 scopei*	current_scope;
-int		scope_maximum;
-int		scope_ident;
+unsigned scope_maximum;
+unsigned scope_ident;
 
 scopei::scopei(int value) {
 	scope = value;
@@ -13,15 +13,15 @@ scopei::scopei(int value) {
 }
 
 scopei::~scopei() {
-	auto n = getsize();
+	auto n = scope_size();
 	if(scope_maximum < n)
 		scope_maximum = n;
 	current_scope = previous;
 	scope_ident--;
 }
 
-int scopei::getsize() const {
-	auto r = 0;
+unsigned scope_size() {
+	unsigned r = 0;
 	for(auto p = current_scope; p; p = p->previous)
 		r += p->size;
 	return r;

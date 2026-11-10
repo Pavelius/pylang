@@ -24,6 +24,10 @@ extern "C" void* memmove(void* destination, const void* source, size_t size) noe
 extern "C" void* memset(void* destination, int value, size_t size) noexcept(true);
 extern "C" void	qsort(void* base, size_t num, size_t size, fncompare proc);
 
+extern "C" void* malloc(long unsigned size);
+extern "C" void* realloc(void *ptr, long unsigned size);
+extern "C" void	free(void* pointer);
+
 template<class T> struct slice {
 	T* data;
 	size_t count;

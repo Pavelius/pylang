@@ -4,10 +4,10 @@
 
 struct array {
 	void* data;
-	size_t count, element_size, count_maximum;
-	constexpr array(size_t size = 0) : data(0), count(0), element_size(size), count_maximum(0) {}
-	constexpr array(void* data, size_t size, size_t count) : data(data), count(count), element_size(size), count_maximum(count | 0x80000000) {}
-	constexpr array(void* data, size_t size, size_t count, unsigned count_maximum) : data(data), count(count), element_size(size), count_maximum(count_maximum | 0x80000000) {}
+	unsigned count, element_size, count_maximum;
+	constexpr array(unsigned size = 0) : data(0), count(0), element_size(size), count_maximum(0) {}
+	constexpr array(void* data, unsigned size, unsigned count) : data(data), count(count), element_size(size), count_maximum(count | 0x80000000) {}
+	constexpr array(void* data, unsigned size, unsigned count, unsigned count_maximum) : data(data), count(count), element_size(size), count_maximum(count_maximum | 0x80000000) {}
 	constexpr explicit operator bool() const { return count != 0; }
 	~array();
 	void* add();
@@ -20,15 +20,15 @@ struct array {
 	void change(unsigned offset, int size);
 	void clear();
 	char* end() const { return (char*)data + element_size * count; }
-	int find(int i1, int i2, void* value, unsigned offset, size_t size) const;
-	int find(void* value, unsigned offset, size_t size) const { return find(0, -1, value, offset, size); }
-	const void* findu(const void* value, size_t size) const;
-	const char* findus(const char* value, size_t size) const;
+	int find(int i1, int i2, void* value, unsigned offset, unsigned size) const;
+	int find(void* value, unsigned offset, unsigned size) const { return find(0, -1, value, offset, size); }
+	const void* findu(const void* value, unsigned size) const;
+	const char* findus(const char* value, unsigned size) const;
 	void* findv(const char* value, unsigned offset) const;
-	void* findv(const char* value, unsigned offset, size_t size) const;
-	size_t getmaximum() const { return count_maximum & 0x7FFFFFFF; }
-	size_t getcount() const { return count; }
-	size_t size() const { return element_size; }
+	void* findv(const char* value, unsigned offset, unsigned size) const;
+	unsigned getmaximum() const { return count_maximum & 0x7FFFFFFF; }
+	unsigned getcount() const { return count; }
+	unsigned size() const { return element_size; }
 	constexpr bool have(const void* element) const { return element >= data && element < (char*)data + element_size * count; }
 	int indexof(const void* element) const;
 	void* insert(int index, const void* element);
@@ -37,18 +37,20 @@ struct array {
 	void* ptrs(int index) const { return (((unsigned)index) < count) ? (char*)data + element_size * index : 0; }
 	template<class T> slice<T> records() const { return slice<T>((T*)data, count); }
 	void remove(int index, int elements_count = 1);
-	void shift(int i1, int i2, size_t c1, size_t c2);
+	void shift(int i1, int i2, unsigned c1, unsigned c2);
 	void setcount(unsigned value) { count = value; }
-	void setup(size_t size);
+	void setup(unsigned size);
 	void swap(int i1, int i2);
 	void reserve(unsigned count);
 	void repack(unsigned& start, unsigned count);
 private:
-	void grow(unsigned offset, size_t delta);
-	void shrink(unsigned offset, size_t delta);
-	void zero(unsigned offset, size_t delta);
+	void grow(unsigned offset, unsigned delta);
+	void shrink(unsigned offset, unsigned delta);
+	void zero(unsigned offset, unsigned delta);
 };
 
-void* realloc_data(void* data, size_t new_size);
-void* realloc_data(void* data, size_t new_size, size_t& new_size_maximum);
-void* find_data(void* source_data, size_t source_count, const void* data, size_t count);
+unsigned rmoptimal(unsigned need_count);
+
+void* realloc_data(void* data, unsigned new_size);
+void* realloc_data(void* data, unsigned new_size, unsigned& new_size_maximum);
+void* find_data(void* source_data, unsigned source_count, const void* data, unsigned count);

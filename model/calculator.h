@@ -2,6 +2,7 @@
 
 #include "slice.h"
 
+enum sectionn : unsigned char;
 enum operationn {
 	Nop,
 	Plus, Minus, Div, Mul, DivRest,
@@ -23,10 +24,10 @@ enum scopen {
 	TypeScope = -2, PointerScope = -3,
 };
 struct offseti {
-	int			sid; // Section identifier, -1 for not instaced identifier
-	int			offset; // Offset from section base
-	void		clear() { sid = -1; offset = 0; }
-	bool		needalloc() const { return sid != -1; }
+	sectionn	sid; // Section identifier
+	unsigned	offset; // Offset from section base
+	constexpr explicit operator bool() const { return sid != (sectionn)0; }
+	void		clear() { sid = (sectionn)0; offset = 0; }
 };
 struct symboli {
 	int			ids; // string id, use string_name() to get text

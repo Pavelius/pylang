@@ -83,7 +83,7 @@ int main() {
 	print_types();
 	auto test_value = symbol_run("run", "main");
 	if(operation_type(0)==string_type)
-		println("Result string `%1`", section(StringSection).ptr(test_value));
+		println("Result string `%1`", sections[StringSection].ptr(test_value));
 	else
 		println("Result number is %1i", test_value);
 	return 0;

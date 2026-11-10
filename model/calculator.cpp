@@ -16,7 +16,7 @@ static vector<int> ast_lists;
 
 static int function_params;
 static int last_type;
-static int last_ident;
+static unsigned last_ident;
 static unsigned last_flags;
 static long last_number;
 static bool need_return;
@@ -290,12 +290,12 @@ static int getscope() {
 	return 0;
 }
 
-static void create_instance(int sec, int type, int offset, int ast) {
+static void create_instance(sectionn sec, int type, int offset, int ast) {
 	set_value(sec, offset, symbol_size(type), const_expression(ast));
 }
 
-static void instance_symbol(int sid, int section_id) {
-	if(sid == -1 || section_id == -1)
+static void instance_symbol(int sid, sectionn section_id) {
+	if(sid == -1 || !section_id)
 		return;
 	auto& e = bsdata<symboli>::get(sid);
 	if(e.instance.sid != -1)
@@ -303,7 +303,7 @@ static void instance_symbol(int sid, int section_id) {
 	e.instance.sid = section_id;
 	if(section_id == LocalSection) {
 		if(current_scope) {
-			e.instance.offset = current_scope->getsize();
+			e.instance.offset = scope_size();
 			current_scope->size += e.size;
 		}
 	} else if(section_id == ModuleSection) {
@@ -311,7 +311,7 @@ static void instance_symbol(int sid, int section_id) {
 		e.instance.offset = module.size;
 		module.size += e.size;
 	} else {
-		auto& s = bsdata<sectioni>::get(section_id);
+		auto& s = sections[section_id];
 		e.instance.offset = s.size;
 		s.add(0, e.size);
 		if(e.value != -1) {
@@ -437,10 +437,10 @@ static int find_define(int ids) {
 	return -1;
 }
 
-static int find_section(int ids) {
-	for(auto& e : bsdata<sectioni>()) {
+static unsigned char find_section(int ids) {
+	for(auto& e : sections) {
 		if(e.ids == ids)
-			return &e - bsdata<sectioni>::begin();
+			return &e - sections;
 	}
 	return -1;
 }
@@ -599,14 +599,6 @@ static void parse_flags() {
 	}
 }
 
-static int create_section(int ids) {
-	auto p = bsdata<sectioni>::add();
-	p->ids = ids;
-	p->data = 0;
-	p->size = 0;
-	return p - bsdata<sectioni>::begin();
-}
-
 static int create_define(int ids, int ast) {
 	auto p = bsdata<definei>::add();
 	p->ids = ids;
@@ -636,8 +628,7 @@ int create_symbol(int id, int type, unsigned flags, int scope, int parent) {
 	p->value = -1;
 	p->frame = 0;
 	p->count = 0;
-	p->instance.sid = -1;
-	p->instance.offset = 0;
+	p->instance.clear();
 	if(p->scope == PointerScope)
 		p->size = size_of_pointer;
 	else
@@ -1285,7 +1276,10 @@ static void add_symbol(sectionn v, const char* id) {
 	auto ids = strings.add(id);
 	if(find_section(ids) != -1)
 		return;
-	create_section(ids);
+	auto& e = sections[v];
+	e.ids = ids;
+	e.data = 0;
+	e.size = 0;
 }
 
 static void symbol_initialize() {

@@ -18,7 +18,7 @@ unsigned rmoptimal(unsigned need_count) {
 	return need_count + mc;
 }
 
-void* realloc_data(void* data, size_t new_size) {
+void* realloc_data(void* data, unsigned new_size) {
 	if(data) {
 		auto p = realloc(data, new_size);
 		if(!p)
@@ -28,14 +28,14 @@ void* realloc_data(void* data, size_t new_size) {
 		return malloc(new_size);
 }
 
-void* realloc_data(void* data, size_t new_size, size_t& new_size_maximum) {
+void* realloc_data(void* data, unsigned new_size, unsigned& new_size_maximum) {
 	if(new_size <= new_size_maximum)
 		return data;
 	new_size_maximum = rmoptimal(new_size);
 	return realloc_data(data, new_size);
 }
 
-void* find_data(void* source_data, size_t source_count, const void* data, size_t count) {
+void* find_data(void* source_data, unsigned source_count, const void* data, unsigned count) {
 	if(!source_data || !data)
 		return 0;
 	if(count > source_count)
@@ -97,7 +97,7 @@ void array::clear() {
 	data = 0;
 }
 
-void array::setup(size_t size) {
+void array::setup(unsigned size) {
 	if(!isgrowable())
 		return;
 	clear();
@@ -115,7 +115,7 @@ void array::reserve(unsigned count) {
 	data = realloc_data(data, count_maximum * element_size);
 }
 
-void* array::findv(const char* value, unsigned offset, size_t string_size) const {
+void* array::findv(const char* value, unsigned offset, unsigned string_size) const {
 	if(!data)
 		return 0;
 	auto pe = end();
@@ -200,7 +200,7 @@ void array::swap(int i1, int i2) {
 	}
 }
 
-void array::shift(int i1, int i2, size_t c1, size_t c2) {
+void array::shift(int i1, int i2, unsigned c1, unsigned c2) {
 	if(i2 < i1) {
 		iswap(i2, i1);
 		iswap(c1, c2);
@@ -217,7 +217,7 @@ void array::shift(int i1, int i2, size_t c1, size_t c2) {
 	}
 }
 
-void array::shrink(unsigned offset, size_t delta) {
+void array::shrink(unsigned offset, unsigned delta) {
 	if(offset + delta > element_size)
 		return;
 	auto p1 = (char*)data;
@@ -240,7 +240,7 @@ void array::shrink(unsigned offset, size_t delta) {
 	element_size = new_size;
 }
 
-void array::grow(unsigned offset, size_t delta) {
+void array::grow(unsigned offset, unsigned delta) {
 	if(!delta)
 		return;
 	if(!isgrowable())
@@ -288,7 +288,7 @@ void array::change(unsigned offset, int size) {
 		shrink(offset, -size);
 }
 
-const void* array::findu(const void* value, size_t size) const {
+const void* array::findu(const void* value, unsigned size) const {
 	return find_data(data, count * element_size, value, size);
 }
 
@@ -305,7 +305,7 @@ void* array::addu(const void* element, unsigned count) {
 	return pr;
 }
 
-const char* array::findus(const char* value, size_t size) const {
+const char* array::findus(const char* value, unsigned size) const {
 	auto p = begin();
 	auto pe = end();
 	auto s = *value;

@@ -6,11 +6,11 @@
 #include "stringa.h"
 
 struct evaluei {
-	int	type;
-	int value;
-	int sid; // Symbol id for rvalue conversion. -1 if no rvalue.
-	int sec; // Section id. -1 for none.
-	void clear() { type = i32; value = 0; sec = -1; sid = -1; }
+	int			type;
+	int			value;
+	int			sid; // Symbol id for rvalue conversion. -1 if no rvalue.
+	sectionn	sec; // Section id
+	void clear() { type = i32; value = 0; sec = NoSection; sid = -1; }
 	bool lvalue() const { return sid != -1; }
 	bool rvalue() const { return sid == -1; }
 };
@@ -100,7 +100,7 @@ static void push_number(int value) {
 }
 
 static int add_string_value(const char* value) {
-	auto& e = section(StringSection);
+	auto& e = sections[StringSection];
 	auto len = zlen(value);
 	return e.addstring(value, len);
 }
@@ -144,7 +144,7 @@ static void rvalue() {
 		e.type = dereference(e.type);
 		e.value = get_value(e.sec, e.value, symbol_size(e.type));
 		e.sid = -1;
-		e.sec = -1;
+		e.sec = NoSection;
 	}
 }
 
