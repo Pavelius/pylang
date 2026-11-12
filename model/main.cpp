@@ -4,10 +4,13 @@
 #include "print.h"
 #include "section.h"
 #include "stringbuilder.h"
+#include "vector.h"
 
 static const char* last_url_error;
 
 void printcnf(const char* text);
+
+extern vector<symboli> symbols;
 
 static void printcnf_proc(const char* format, const char* format_param) {
 	if(format_param) {
@@ -28,7 +31,7 @@ static void symbol_info(stringbuilder& sb, const symboli& e) {
 	if(e.is(Function)) {
 		sb.add("(");
 		auto param_count = 0;
-		for(auto& m : bsdata<symboli>()) {
+		for(auto& m : symbols) {
 			if(m.parent != sid)
 				continue;
 			if(param_count > 0)
@@ -42,12 +45,12 @@ static void symbol_info(stringbuilder& sb, const symboli& e) {
 
 static void print_types() {
 	char temp[260]; stringbuilder sb(temp);
-	for(auto& e : bsdata<symboli>()) {
+	for(auto& e : symbols) {
 		if(e.ispredefined() || e.type == -1 || e.ispointer() || !e.istype())
 			continue;
-		auto sid = &e - bsdata<symboli>::begin();
+		auto sid = &e - symbols.begin();
 		println("module %1 (size %2i)", symbol_name(sid), e.size);
-		for(auto& m : bsdata<symboli>()) {
+		for(auto& m : symbols) {
 			if(m.ispredefined() || m.type == -1 || m.parent != sid)
 				continue;
 			sb.clear(); symbol_info(sb, m);
@@ -58,10 +61,10 @@ static void print_types() {
 }
 
 static void print_symbols() {
-	for(auto& e : bsdata<symboli>()) {
+	for(auto& e : symbols) {
 		if(e.ispredefined() || e.type == -1)
 			continue;
-		auto pt = bsdata<symboli>::begin() + e.type;
+		auto pt = symbols.begin() + e.type;
 		auto sid = e.getindex();
 		print("%2 %1", string_name(e.ids), string_name(pt->ids));
 		auto size = e.size;

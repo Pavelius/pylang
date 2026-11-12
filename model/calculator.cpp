@@ -9,9 +9,13 @@
 #include "stringa.h"
 #include "vector.h"
 
-BSDATAD(definei)
-BSDATAD(symboli)
+struct definei {
+	int	ids;
+	int	ast;
+};
 
+vector<symboli> symbols;
+static vector<definei> defines;
 static vector<asti> asts;
 static vector<int> ast_lists;
 
@@ -161,26 +165,26 @@ const asti* ast_get(int v) {
 int define_ast(int sid) {
 	if(sid == -1)
 		return -1;
-	return bsdata<definei>::get(sid).ast;
+	return defines[sid].ast;
 }
 
 int symboli::getindex() const {
-	return this - bsdata<symboli>::begin();
+	return this - symbols.begin();
 }
 
 bool symbol(int sid, symbolfn v) {
 	if(sid == -1)
 		return false;
-	return bsdata<symboli>::get(sid).is(v);
+	return symbols[sid].is(v);
 }
 
 const char* symbol_name(int sid) {
 	if(sid == -1)
 		return "";
-	auto p = &bsdata<symboli>::get(sid);
+	auto p = &symbols[sid];
 	auto pointer_level = 0;
 	while(p->scope == PointerScope) {
-		p = &bsdata<symboli>::get(p->type);
+		p = &symbols[p->type];
 		pointer_level++;
 	}
 	if(!pointer_level)
@@ -196,32 +200,32 @@ const char* symbol_name(int sid) {
 void symbol_set(int sid, symbolfn v) {
 	if(sid == -1)
 		return;
-	bsdata<symboli>::get(sid).set(v);
+	symbols[sid].set(v);
 }
 
 int symbol_ast(int sid) {
 	if(sid == -1)
 		return -1;
-	return bsdata<symboli>::get(sid).value;
+	return symbols[sid].value;
 }
 
 void symbol_ast(int sid, int value) {
 	if(sid == -1)
 		return;
-	bsdata<symboli>::get(sid).value = value;
+	symbols[sid].value = value;
 }
 
 int symbol_type(int sid) {
 	if(sid == -1)
 		return -1;
-	auto n = bsdata<symboli>::get(sid).type;
+	auto n = symbols[sid].type;
 	if(n == -1)
 		return sid;
 	return n;
 }
 
 int symbol_requisit(int sid, int index) {
-	for(auto& e : bsdata<symboli>()) {
+	for(auto& e : symbols) {
 		if(e.parent != sid)
 			continue;
 		if(index == 0)
@@ -234,51 +238,49 @@ int symbol_requisit(int sid, int index) {
 int symbol_size(int sid) {
 	if(sid == -1)
 		return 0;
-	return bsdata<symboli>::get(sid).size;
+	return symbols[sid].size;
 }
 
 void symbol_frame(int sid, int value) {
 	if(sid == -1)
 		return;
-	bsdata<symboli>::get(sid).frame = value;
+	symbols[sid].frame = value;
 }
 
 offseti symbol_section(int sid) {
 	if(sid == -1)
 		return {};
-	return bsdata<symboli>::get(sid).instance;
+	return symbols[sid].instance;
 }
 
 void symbol_type(int sid, int value) {
 	if(sid == -1)
 		return;
-	bsdata<symboli>::get(sid).type = value;
+	symbols[sid].type = value;
 }
 
 void symbol_count(int sid, int value) {
 	if(sid == -1)
 		return;
-	auto& e = bsdata<symboli>::get(sid);
-	e.count = value;
+	symbols[sid].count = value;
 }
 
 int symbol_scope(int sid) {
 	if(sid == -1)
 		return -1;
-	return bsdata<symboli>::get(sid).scope;
+	return symbols[sid].scope;
 }
 
 void symbol_scope(int sid, int value) {
 	if(sid == -1)
 		return;
-	auto& e = bsdata<symboli>::get(sid);
-	e.scope = value;
+	symbols[sid].scope = value;
 }
 
 const char* symbol_name(int sid, int value) {
 	if(sid == -1)
 		return "unknown";
-	return string_name(bsdata<symboli>::get(sid).ids);
+	return string_name(symbols[sid].ids);
 }
 
 static asti ast_object(int i) {
@@ -304,7 +306,7 @@ static void create_instance(sectionn sec, int type, int offset, int ast) {
 static void instance_symbol(int sid, sectionn section_id) {
 	if(sid == -1 || !section_id)
 		return;
-	auto& e = bsdata<symboli>::get(sid);
+	auto& e = symbols[sid];
 	if(e.instance.sid != -1)
 		return;
 	e.instance.sid = section_id;
@@ -314,7 +316,7 @@ static void instance_symbol(int sid, sectionn section_id) {
 			current_scope->size += e.size;
 		}
 	} else if(section_id == ModuleSection) {
-		auto& module = bsdata<symboli>::get(module_sid);
+		auto& module = symbols[module_sid];
 		e.instance.offset = module.size;
 		module.size += e.size;
 	} else {
@@ -429,7 +431,7 @@ static bool isidentifier() {
 }
 
 int find_symbol(int ids, int scope, int parent) {
-	for(auto& e : bsdata<symboli>()) {
+	for(auto& e : symbols) {
 		if(e.ids == ids && e.scope == scope && e.parent == parent)
 			return e.getindex();
 	}
@@ -437,9 +439,9 @@ int find_symbol(int ids, int scope, int parent) {
 }
 
 static int find_define(int ids) {
-	for(auto& e : bsdata<definei>()) {
+	for(auto& e : defines) {
 		if(e.ids == ids)
-			return &e - bsdata<definei>::begin();
+			return &e - defines.begin();
 	}
 	return -1;
 }
@@ -607,10 +609,10 @@ static void parse_flags() {
 }
 
 static int create_define(int ids, int ast) {
-	auto p = bsdata<definei>::add();
+	auto p = defines.add();
 	p->ids = ids;
 	p->ast = ast;
-	return p - bsdata<definei>::begin();
+	return p - defines.begin();
 }
 
 static int create_define(int ids, int ast, const char* error_format) {
@@ -624,7 +626,7 @@ static int create_define(int ids, int ast, const char* error_format) {
 }
 
 int create_symbol(int id, int type, unsigned flags, int scope, int parent) {
-	auto p = bsdata<symboli>::add();
+	auto p = symbols.add();
 	p->ids = id;
 	if(scope == -1)
 		scope = getscope();
@@ -722,7 +724,7 @@ static int find_variable(int ids) {
 int dereference(int type) {
 	if(type == -1)
 		return -1;
-	auto p = bsdata<symboli>::begin() + type;
+	auto p = symbols.begin() + type;
 	return p->type;
 }
 
@@ -1276,7 +1278,7 @@ static void add_symbol(symboln v, const char* id, int size) {
 	if(find_symbol(ids, TypeScope, 0) != -1)
 		return;
 	create_symbol(ids, -1, FG(Predefined), TypeScope, 0);
-	bsdata<symboli>::get(v).size = size;
+	symbols[v].size = size;
 }
 
 static void add_symbol(sectionn v, const char* id) {

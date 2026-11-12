@@ -53,10 +53,6 @@ struct asti {
 	int			left;
 	int			right;
 };
-struct definei {
-	int			ids;
-	int			ast;
-};
 
 extern int string_type;
 
