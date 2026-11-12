@@ -1,4 +1,3 @@
-#include "bsdata.h"
 #include "calculator.h"
 #include "io_stream.h"
 #include "print.h"
@@ -22,7 +21,7 @@ static void printcnf_proc(const char* format, const char* format_param) {
 }
 
 static void symbol_info(stringbuilder& sb, const symboli& e) {
-	auto sid = e.getindex();
+	auto sid = e.index();
 	if(e.type != -1) {
 		sb.add(symbol_name(e.type));
 		sb.add(" ");
@@ -65,7 +64,7 @@ static void print_symbols() {
 		if(e.ispredefined() || e.type == -1)
 			continue;
 		auto pt = symbols.begin() + e.type;
-		auto sid = e.getindex();
+		auto sid = e.index();
 		print("%2 %1", string_name(e.ids), string_name(pt->ids));
 		auto size = e.size;
 		if(size)

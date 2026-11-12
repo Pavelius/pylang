@@ -4,6 +4,8 @@
 using size_t = decltype(sizeof(0));
 #endif
 
+#define	lenghtof(C) (sizeof(C)/sizeof(C[0]))
+
 typedef int(*fncompare)(const void*, const void*);
 typedef int(*fngetnum)(const void* object);
 

@@ -8,7 +8,6 @@
 #define	BSDATATMPL template<>
 #endif
 
-#define	lenghtof(C) (sizeof(C)/sizeof(C[0]))
 #define	FO(T,R) ((size_t)&((T*)0)->R)
 
 #define BSDATA(e) BSDATATMPL e bsdata<e>::elements[]

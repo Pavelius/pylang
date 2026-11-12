@@ -151,7 +151,6 @@
     <ClInclude Include="..\model\section.h" />
     <ClInclude Include="..\platform\win.h" />
     <ClInclude Include="..\support\array.h" />
-    <ClInclude Include="..\support\bsdata.h" />
     <ClInclude Include="..\support\flagable.h" />
     <ClInclude Include="..\support\io_stream.h" />
     <ClInclude Include="..\support\math.h" />

@@ -30,17 +30,17 @@ struct offseti {
 	void		clear() { sid = (sectionn)0; offset = 0; }
 };
 struct symboli {
-	int			ids; // string id, use string_name() to get text
-	int			scope; // visibility scope (-2 for pointers, -3 for platform externs)
-	int			parent; // parent symbol. Module or member.
-	int			type; // other symbol id
-	int			value; // initialization value
-	int			count; // 0 - default, 1+ for array
+	unsigned	ids; // string id, use string_name() to get text
+	unsigned	scope; // visibility scope (-2 for pointers, -3 for platform externs)
+	unsigned	parent; // parent symbol. Module or member.
+	unsigned	type; // other symbol id
+	unsigned	value; // initialization value
+	unsigned	count; // 0 - default, 1+ for array
 	unsigned	flags; // Some flags
-	int			frame; // symbol stack frame
-	int			size; // Symbol size. Can be zero.
+	unsigned	frame; // symbol stack frame
+	unsigned	size; // Symbol size. Can be zero.
 	offseti		instance; // symbol instance in memory
-	int			getindex() const;
+	unsigned	index() const;
 	bool		is(symbolfn v) const { return (flags & (1 << v)) != 0; }
 	bool		isarray() const { return count >= 0; }
 	bool		istype() const { return scope == TypeScope || scope == PointerScope; }

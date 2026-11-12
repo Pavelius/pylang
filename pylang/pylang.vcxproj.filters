@@ -60,9 +60,6 @@
     <ClInclude Include="..\support\array.h">
       <Filter>support</Filter>
     </ClInclude>
-    <ClInclude Include="..\support\bsdata.h">
-      <Filter>support</Filter>
-    </ClInclude>
     <ClInclude Include="..\support\flagable.h">
       <Filter>support</Filter>
     </ClInclude>

@@ -1,4 +1,3 @@
-#include "bsdata.h"
 #include "calculator.h"
 #include "flagable.h"
 #include "io_stream.h"
@@ -168,7 +167,7 @@ int define_ast(int sid) {
 	return defines[sid].ast;
 }
 
-int symboli::getindex() const {
+unsigned symboli::index() const {
 	return this - symbols.begin();
 }
 
@@ -229,7 +228,7 @@ int symbol_requisit(int sid, int index) {
 		if(e.parent != sid)
 			continue;
 		if(index == 0)
-			return e.getindex();
+			return e.index();
 		index--;
 	}
 	return -1;
@@ -433,7 +432,7 @@ static bool isidentifier() {
 int find_symbol(int ids, int scope, int parent) {
 	for(auto& e : symbols) {
 		if(e.ids == ids && e.scope == scope && e.parent == parent)
-			return e.getindex();
+			return e.index();
 	}
 	return -1;
 }
@@ -642,7 +641,7 @@ int create_symbol(int id, int type, unsigned flags, int scope, int parent) {
 		p->size = size_of_pointer;
 	else
 		p->size = symbol_size(p->type);
-	return p->getindex();
+	return p->index();
 }
 
 static int create_symbol(int ids, int type, unsigned flags, int scope, int parent, const char* error_format) {
